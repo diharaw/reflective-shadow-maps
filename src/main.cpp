@@ -50,7 +50,7 @@ protected:
 		create_camera();
 
 		// Object transforms
-		m_object_transforms.model = glm::mat4(1.0f);
+        m_object_transforms.model = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
 
 		return true;
 	}
@@ -67,11 +67,11 @@ protected:
 
 		render_scene(nullptr, m_program);
 
-		if (m_debug_mode)
-			m_debug_draw.frustum(m_flythrough_camera->projection * m_flythrough_camera->view, glm::vec3(0.0f, 1.0f, 0.0f));
-
-		// Render debug draw.
-		m_debug_draw.render(nullptr, m_width, m_height, m_global_uniforms.projection * m_global_uniforms.view);
+//        if (m_debug_mode)
+//            m_debug_draw.frustum(m_flythrough_camera->projection * m_flythrough_camera->view, glm::vec3(0.0f, 1.0f, 0.0f));
+//
+//        // Render debug draw.
+//        m_debug_draw.render(nullptr, m_width, m_height, m_global_uniforms.projection * m_global_uniforms.view);
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -118,6 +118,9 @@ protected:
 
 		if (code == GLFW_KEY_K)
 			m_debug_mode = !m_debug_mode;
+        
+        if (code == GLFW_KEY_SPACE)
+            m_mouse_look = true;
     }
     
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -131,6 +134,9 @@ protected:
         // Handle sideways movement.
         if(code == GLFW_KEY_A || code == GLFW_KEY_D)
             m_sideways_speed = 0.0f;
+        
+        if (code == GLFW_KEY_SPACE)
+            m_mouse_look = false;
     }
     
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -223,7 +229,7 @@ private:
 
 	bool load_scene()
 	{
-		dw::Mesh* sponza = dw::Mesh::load("sponza.obj");
+		dw::Mesh* sponza = dw::Mesh::load("cornell_box.obj");
 
 		if (!sponza)
 		{
@@ -269,17 +275,10 @@ private:
 			dw::SubMesh& submesh = submeshes[i];
 
 			if (submesh.mat)
-			{
-				if (program->set_uniform("s_Diffuse", 0) && submesh.mat->texture(0) != nullptr)
-					submesh.mat->texture(0)->bind(0);
-			}
-			
-#if defined(__EMSCRIPTEN__)
+                program->set_uniform("u_Diffuse", submesh.mat->albedo_value());
 
-#else
 			// Issue draw call.
 			glDrawElementsBaseVertex(GL_TRIANGLES, submesh.index_count, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * submesh.base_index), submesh.base_vertex);
-#endif
 		}
 	}
     
@@ -410,7 +409,7 @@ private:
     float m_heading_speed = 0.0f;
     float m_sideways_speed = 0.0f;
     float m_camera_sensitivity = 0.05f;
-    float m_camera_speed = 0.2f;
+    float m_camera_speed = 0.02f;
     
 	// Camera orientation.
 	float m_camera_x;
