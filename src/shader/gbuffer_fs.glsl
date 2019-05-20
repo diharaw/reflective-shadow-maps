@@ -2,7 +2,7 @@
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (location = 0) out vec3 FS_OUT_Flux;
+layout (location = 0) out vec3 FS_OUT_Albedo;
 layout (location = 1) out vec3 FS_OUT_Normal;
 layout (location = 2) out vec3 FS_OUT_WorldPos;
 
@@ -26,7 +26,7 @@ uniform vec3 u_Color;
 
 void main()
 {
-    FS_OUT_Flux = u_Color;
+    FS_OUT_Albedo = u_Color;
     FS_IN_Normal = FS_IN_Normal;
     FS_OUT_WorldPos = FS_IN_WorldPos;
 }
