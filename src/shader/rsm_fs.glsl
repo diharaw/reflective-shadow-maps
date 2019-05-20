@@ -1,23 +1,34 @@
+// ------------------------------------------------------------------
+// OUTPUT VARIABLES  ------------------------------------------------
+// ------------------------------------------------------------------
 
-out vec4 PS_OUT_Color;
+layout (location = 0) out vec3 FS_OUT_Flux;
+layout (location = 1) out vec3 FS_OUT_Normal;
+layout (location = 2) out vec3 FS_OUT_WorldPos;
 
-in vec3 PS_IN_FragPos;
-in vec3 PS_IN_Normal;
-in vec2 PS_IN_TexCoord;
+// ------------------------------------------------------------------
+// INPUT VARIABLES  -------------------------------------------------
+// ------------------------------------------------------------------
 
-uniform sampler2D s_Diffuse;
+in vec3 FS_IN_WorldPos;
+in vec3 FS_IN_Normal;
+in vec2 FS_IN_TexCoord;
+
+// ------------------------------------------------------------------
+// UNIFORMS ---------------------------------------------------------
+// ------------------------------------------------------------------
+
+uniform vec3 u_Color;
+
+// ------------------------------------------------------------------
+// MAIN -------------------------------------------------------------
+// ------------------------------------------------------------------
 
 void main()
 {
-	vec3 light_pos = vec3(200.0, 200.0, 0.0);
-	vec3 light_dir = normalize(light_pos - PS_IN_FragPos);
-
-	vec4 diffuse = texture(s_Diffuse, PS_IN_TexCoord);
-
-	if (diffuse.w < 0.1)
-		discard;
-
-	vec3 color = dot(PS_IN_Normal, light_dir) * diffuse.xyz;
-
-	PS_OUT_Color = vec4(color, 1.0);
+    FS_OUT_Flux = u_Color;
+    FS_IN_Normal = FS_IN_Normal;
+    FS_OUT_WorldPos = FS_IN_WorldPos;
 }
+
+// ------------------------------------------------------------------

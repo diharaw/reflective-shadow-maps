@@ -1,40 +1,48 @@
+// ------------------------------------------------------------------
+// INPUTS VARIABLES -------------------------------------------------
+// ------------------------------------------------------------------
+
 layout (location = 0) in vec3 VS_IN_Position;
-layout (location = 1) in vec2 VS_IN_Texcoord;
+layout (location = 1) in vec2 VS_IN_TexCoord;
 layout (location = 2) in vec3 VS_IN_Normal;
 layout (location = 3) in vec3 VS_IN_Tangent;
 layout (location = 4) in vec3 VS_IN_Bitangent;
 
-const int MAX_BONES = 128;
+// ------------------------------------------------------------------
+// OUTPUT VARIABLES  ------------------------------------------------
+// ------------------------------------------------------------------
 
-layout (std140) uniform u_GlobalUBO
-{ 
+out vec3 FS_IN_WorldPos;
+out vec3 FS_IN_Normal;
+out vec2 FS_IN_TexCoord;
+
+// ------------------------------------------------------------------
+// UNIFORMS ---------------------------------------------------------
+// ------------------------------------------------------------------
+
+layout(std430, binding = 0) buffer GlobalUniforms
+{
     mat4 view;
     mat4 projection;
-    mat4 inv_view;
-    mat4 inv_projection;
-    mat4 inv_view_projection;
-    vec4 view_pos;
+    mat4 light_view_proj;
 };
 
-layout (std140) uniform u_ObjectUBO
-{ 
+layout (std140) uniform ObjectUniforms
+{
     mat4 model;
 };
 
-
-out vec3 PS_IN_FragPos;
-out vec3 PS_IN_Normal;
-out vec2 PS_IN_TexCoord;
+// ------------------------------------------------------------------
+// MAIN -------------------------------------------------------------
+// ------------------------------------------------------------------
 
 void main()
 {
-    vec4 world_pos = model * vec4(VS_IN_Position, 1.0f);
-    PS_IN_FragPos = world_pos.xyz;
-
-	mat3 model_mat = mat3(model);
-
-	PS_IN_Normal = normalize(model_mat * VS_IN_Normal);
-    PS_IN_TexCoord = VS_IN_Texcoord;
-
-	gl_Position = projection * view * world_pos;
+    vec4 world_pos = model * vec4(VS_IN_Position, 1.0);
+    FS_IN_WorldPos = world_pos.xyz;
+    FS_IN_Normal = mat3(model) * VS_IN_Position.xyz;
+    FS_IN_TexCoord = VS_IN_TexCoord;
+    gl_Position = light_view_proj * world_pos;
 }
+
+// ------------------------------------------------------------------
