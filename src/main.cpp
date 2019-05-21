@@ -186,31 +186,95 @@ private:
 	{
 		{
 			// Create general shaders
-			m_vs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/scene_vs.glsl"));
-			m_fs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/scene_fs.glsl"));
+			m_fullscreen_triangle_vs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/fullscreen_triangle_vs.glsl"));
+			m_direct_fs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/direct_light_fs.glsl"));
+            m_indirect_fs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/indirect_light_fs.glsl"));
+            m_rsm_vs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/rsm_vs.glsl"));
+            m_gbuffer_vs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/gbuffer_vs.glsl"));
+            m_gbuffer_fs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/gbuffer_fs.glsl"));
 
-			if (!m_vs || !m_fs)
-			{
-				DW_LOG_FATAL("Failed to create Shaders");
-				return false;
-			}
-
-			// Create general shader program
-			dw::Shader* shaders[] = { m_vs.get(), m_fs.get() };
-			m_program = std::make_unique<dw::Program>(2, shaders);
-
-			if (!m_program)
-			{
-				DW_LOG_FATAL("Failed to create Shader Program");
-				return false;
-			}
-
-			m_program->uniform_block_binding("u_GlobalUBO", 0);
-			m_program->uniform_block_binding("u_ObjectUBO", 1);
+            {
+                if (!m_fullscreen_triangle_vs || !m_direct_fs)
+                {
+                    DW_LOG_FATAL("Failed to create Shaders");
+                    return false;
+                }
+                
+                // Create general shader program
+                dw::Shader* shaders[] = { m_fullscreen_triangle_vs.get(), m_direct_fs.get() };
+                m_direct_program = std::make_unique<dw::Program>(2, shaders);
+                
+                if (!m_direct_program)
+                {
+                    DW_LOG_FATAL("Failed to create Shader Program");
+                    return false;
+                }
+            }
+            
+            {
+                if (!m_fullscreen_triangle_vs || !m_indirect_fs)
+                {
+                    DW_LOG_FATAL("Failed to create Shaders");
+                    return false;
+                }
+                
+                // Create general shader program
+                dw::Shader* shaders[] = { m_fullscreen_triangle_vs.get(), m_indirect_fs.get() };
+                m_indirect_program = std::make_unique<dw::Program>(2, shaders);
+                
+                if (!m_indirect_program)
+                {
+                    DW_LOG_FATAL("Failed to create Shader Program");
+                    return false;
+                }
+            }
+            
+            {
+                if (!m_rsm_vs || !m_gbuffer_fs)
+                {
+                    DW_LOG_FATAL("Failed to create Shaders");
+                    return false;
+                }
+                
+                // Create general shader program
+                dw::Shader* shaders[] = { m_rsm_vs.get(), m_gbuffer_fs.get() };
+                m_rsm_program = std::make_unique<dw::Program>(2, shaders);
+                
+                if (!m_rsm_program)
+                {
+                    DW_LOG_FATAL("Failed to create Shader Program");
+                    return false;
+                }
+            }
+            
+            {
+                if (!m_gbuffer_vs || !m_gbuffer_fs)
+                {
+                    DW_LOG_FATAL("Failed to create Shaders");
+                    return false;
+                }
+                
+                // Create general shader program
+                dw::Shader* shaders[] = { m_gbuffer_vs.get(), m_gbuffer_fs.get() };
+                m_gbuffer_program = std::make_unique<dw::Program>(2, shaders);
+                
+                if (!m_gbuffer_program)
+                {
+                    DW_LOG_FATAL("Failed to create Shader Program");
+                    return false;
+                }
+            }
 		}
 
 		return true;
 	}
+    
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    
+    void create_framebuffers()
+    {
+        
+    }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
