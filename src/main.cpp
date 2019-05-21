@@ -385,10 +385,32 @@ private:
     
 private:
 	// General GPU resources.
-    std::unique_ptr<dw::Shader> m_vs;
-	std::unique_ptr<dw::Shader> m_fs;
-	std::unique_ptr<dw::Program> m_program;
-
+    std::unique_ptr<dw::Shader> m_fullscreen_triangle_vs;
+	std::unique_ptr<dw::Shader> m_direct_fs;
+    std::unique_ptr<dw::Shader> m_indirect_fs;
+    std::unique_ptr<dw::Shader> m_rsm_vs;
+    std::unique_ptr<dw::Shader> m_gbuffer_vs;
+    std::unique_ptr<dw::Shader> m_gbuffer_fs;
+    
+    std::unique_ptr<dw::Program> m_indirect_program;
+    std::unique_ptr<dw::Program> m_rsm_program;
+    std::unique_ptr<dw::Program> m_gbuffer_program;
+    std::unique_ptr<dw::Program> m_direct_program;
+    
+    std::unique_ptr<dw::Texture2D> m_gbuffer_albedo_rt;
+    std::unique_ptr<dw::Texture2D> m_gbuffer_normals_rt;
+    std::unique_ptr<dw::Texture2D> m_gbuffer_world_pos_rt;
+    std::unique_ptr<dw::Texture2D> m_gbuffer_depth_rt;
+    std::unique_ptr<dw::Texture2D> m_rsm_flux_rt;
+    std::unique_ptr<dw::Texture2D> m_rsm_normals_rt;
+    std::unique_ptr<dw::Texture2D> m_rsm_world_pos_rt;
+    std::unique_ptr<dw::Texture2D> m_rsm_depth_rt;
+    std::unique_ptr<dw::Texture2D> m_direct_light_rt;
+    
+    std::unique_ptr<dw::Framebuffer> m_gbuffer_fbo;
+    std::unique_ptr<dw::Framebuffer> m_rsm_fbo;
+    std::unique_ptr<dw::Framebuffer> m_direct_light_fbo;
+    
 	std::unique_ptr<dw::UniformBuffer> m_object_ubo;
     std::unique_ptr<dw::UniformBuffer> m_global_ubo;
 
