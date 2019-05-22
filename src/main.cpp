@@ -10,6 +10,7 @@
 #include "camera.h"
 
 #define CAMERA_FAR_PLANE 1000.0f
+#define RSM_SIZE 1024
 
 // Uniform buffer data structure.
 struct ObjectUniforms
@@ -273,7 +274,17 @@ private:
     
     void create_framebuffers()
     {
+        m_gbuffer_albedo_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+        m_gbuffer_normals_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_gbuffer_world_pos_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
+        m_gbuffer_depth_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
         
+        m_rsm_flux_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+        m_rsm_normals_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_rsm_world_pos_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
+        m_rsm_depth_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+        
+        m_direct_light_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
     }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
