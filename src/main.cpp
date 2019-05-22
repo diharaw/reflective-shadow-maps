@@ -285,6 +285,21 @@ private:
         m_rsm_depth_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
         
         m_direct_light_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        
+        m_gbuffer_fbo = std::make_unique<dw::Framebuffer>();
+        
+        dw::Texture* gbuffer_rts[] = { m_gbuffer_albedo_rt.get(), m_gbuffer_normals_rt.get(), m_gbuffer_world_pos_rt.get() };
+        m_gbuffer_fbo->attach_multiple_render_targets(3, gbuffer_rts);
+        m_gbuffer_fbo->attach_depth_stencil_target(m_gbuffer_depth_rt.get(), 0, 0);
+        
+        m_rsm_fbo = std::make_unique<dw::Framebuffer>();
+        
+        dw::Texture* rsm_rts[] = { m_rsm_flux_rt.get(), m_rsm_normals_rt.get(), m_rsm_world_pos_rt.get() };
+        m_rsm_fbo->attach_multiple_render_targets(3, rsm_rts);
+        m_rsm_fbo->attach_depth_stencil_target(m_rsm_depth_rt.get(), 0, 0);
+        
+        m_direct_light_fbo = std::make_unique<dw::Framebuffer>();
+        m_direct_light_fbo->attach_render_target(0, m_direct_light_rt.get(), 0, 0);
     }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
