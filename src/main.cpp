@@ -66,8 +66,11 @@ protected:
 		update_global_uniforms(m_global_uniforms);
 		update_object_uniforms(m_object_transforms);
 
-		render_scene(nullptr, m_program);
-
+        render_rsm();
+        render_gbuffer();
+        direct_lighting();
+        indirect_lighting();
+        
 //        if (m_debug_mode)
 //            m_debug_draw.frustum(m_flythrough_camera->projection * m_flythrough_camera->view, glm::vec3(0.0f, 1.0f, 0.0f));
 //
@@ -314,6 +317,34 @@ private:
         
 		return true;
 	}
+    
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    
+    void render_rsm()
+    {
+        render_scene(m_rsm_fbo, m_rsm_program, RSM_SIZE, RSM_SIZE, GL_FRONT);
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    
+    void render_gbuffer()
+    {
+        render_scene(m_gbuffer_fbo, m_gbuffer_program, m_width, m_height, GL_BACK);
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    
+    void direct_lighting()
+    {
+        
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    
+    void indirect_lighting()
+    {
+        
+    }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -374,19 +405,20 @@ private:
     
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void render_scene(std::unique_ptr<dw::Framebuffer> fbo, std::unique_ptr<dw::Program>& program)
+	void render_scene(std::unique_ptr<dw::Framebuffer>& fbo, std::unique_ptr<dw::Program>& program, int w, int h, GLenum cull_face)
 	{
 		glEnable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);
+        glCullFace(cull_face);
 
         if (fbo)
             fbo->bind();
         else
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
-		glViewport(0, 0, m_width, m_height);
+		glViewport(0, 0, w, h);
 
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClearDepth(1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
