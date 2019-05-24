@@ -336,14 +336,79 @@ private:
     
     void direct_lighting()
     {
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
         
+        m_direct_light_fbo->bind();
+        
+        glViewport(0, 0, m_width, m_height);
+        
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        // Bind shader program.
+        m_direct_program->use();
+        
+        if (m_direct_program->set_uniform("s_Albedo", 0))
+            m_gbuffer_albedo_rt->bind(0);
+        
+        if (m_direct_program->set_uniform("s_Normals", 1))
+            m_gbuffer_normals_rt->bind(1);
+        
+        if (m_direct_program->set_uniform("s_WorldPos", 2))
+            m_gbuffer_world_pos_rt->bind(2);
+        
+        // Bind uniform buffers.
+        m_global_ubo->bind_base(0);
+
+        // Render fullscreen triangle
+        glDrawArrays(GL_TRIANGLES, 0, 3);
     }
     
     // -----------------------------------------------------------------------------------------------------------------------------------
     
     void indirect_lighting()
     {
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
         
+        m_direct_light_fbo->bind();
+        
+        glViewport(0, 0, m_width, m_height);
+        
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        // Bind shader program.
+        m_indirect_program->use();
+        
+        if (m_indirect_program->set_uniform("s_DirectLight", 0))
+            m_direct_light_rt->bind(0);
+        
+        if (m_indirect_program->set_uniform("s_Normals", 1))
+            m_gbuffer_normals_rt->bind(1);
+        
+        if (m_indirect_program->set_uniform("s_WorldPos", 2))
+            m_gbuffer_world_pos_rt->bind(2);
+        
+        if (m_indirect_program->set_uniform("s_RSMFlux", 3))
+            m_rsm_flux_rt->bind(3);
+        
+        if (m_indirect_program->set_uniform("s_RSMNormals", 4))
+            m_rsm_normals_rt->bind(4);
+        
+        if (m_indirect_program->set_uniform("s_RSMWorldPos", 5))
+            m_rsm_world_pos_rt->bind(5);
+        
+        if (m_indirect_program->set_uniform("s_RSM", 6))
+            m_rsm_depth_rt->bind(6);
+        
+        // Bind uniform buffers.
+        m_global_ubo->bind_base(0);
+        
+        // Render fullscreen triangle
+        glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
