@@ -20,10 +20,9 @@ out vec2 FS_IN_TexCoord;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout(std430, binding = 0) buffer GlobalUniforms
+layout(std140) uniform GlobalUniforms
 {
-    mat4 view;
-    mat4 projection;
+    mat4 view_proj;
     mat4 light_view_proj;
 };
 

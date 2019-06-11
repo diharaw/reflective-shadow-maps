@@ -20,12 +20,10 @@ struct ObjectUniforms
 
 struct GlobalUniforms
 {
-    DW_ALIGNED(16) glm::mat4 view;
-    DW_ALIGNED(16) glm::mat4 projection;
-	DW_ALIGNED(16) glm::mat4 inv_view;
-	DW_ALIGNED(16) glm::mat4 inv_projection;
-	DW_ALIGNED(16) glm::mat4 inv_view_projection;
-	DW_ALIGNED(16) glm::vec4 view_pos;
+    DW_ALIGNED(16) glm::mat4 view_proj;
+    DW_ALIGNED(16) glm::mat4 light_view_proj;
+    DW_ALIGNED(16) glm::mat4 shadow_mat;
+	DW_ALIGNED(16) glm::vec4 cam_pos;
 };
 
 class ReflectiveShadowMaps : public dw::Application
@@ -521,16 +519,9 @@ private:
     void update_transforms(Camera* camera)
     {
         // Update camera matrices.
-		m_global_uniforms.view = camera->view;
-        m_global_uniforms.projection = camera->projection;
-		
-		glm::mat4 cubemap_view = glm::mat4(glm::mat3(m_global_uniforms.view));
-		glm::mat4 view_proj = m_global_uniforms.projection * cubemap_view;
-
-		m_global_uniforms.inv_view = glm::inverse(cubemap_view);
-		m_global_uniforms.inv_projection = glm::inverse(m_global_uniforms.projection);
-		m_global_uniforms.inv_view_projection = glm::inverse(view_proj);
-		m_global_uniforms.view_pos = glm::vec4(camera->transform.position, 0.0f);
+		m_global_uniforms.view_proj = camera->projection * camera->view;
+        m_global_uniforms.light_view_proj = m_light_proj * m_light_view;
+		m_global_uniforms.cam_pos = glm::vec4(camera->transform.position, 0.0f);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -604,6 +595,10 @@ private:
     // Camera.
 	std::unique_ptr<FlythroughCamera> m_flythrough_camera;
 	std::unique_ptr<FlythroughCamera> m_debug_camera;
+    
+    // Light
+    glm::mat4 m_light_view;
+    glm::mat4 m_light_proj;
     
 	// Uniforms.
 	ObjectUniforms m_object_transforms;

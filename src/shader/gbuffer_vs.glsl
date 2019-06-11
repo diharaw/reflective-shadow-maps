@@ -21,10 +21,9 @@ out vec2 FS_IN_TexCoord;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout(std430, binding = 0) buffer GlobalUniforms
+layout(std140) uniform GlobalUniforms
 {
-    mat4 view;
-    mat4 projection;
+    mat4 view_proj;
     mat4 light_view_proj;
 };
 
@@ -47,7 +46,7 @@ void main()
 	FS_IN_Normal = normalize(model_mat * VS_IN_Normal);
     FS_IN_TexCoord = VS_IN_Texcoord;
 
-	gl_Position = projection * view * world_pos;
+	gl_Position = view_proj * world_pos;
 }
 
 // ------------------------------------------------------------------
