@@ -44,6 +44,8 @@ protected:
 		// Load scene.
 		if (!load_scene())
 			return false;
+        
+        create_spot_light();
 
 		// Create camera.
 		create_camera();
@@ -183,6 +185,15 @@ protected:
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    
+    void create_spot_light()
+    {
+        m_cone_angle = 30.0f;
+        m_light_view = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
+        m_light_proj = glm::perspective(glm::radians(2.0f * m_cone_angle), 1.0f, 0.1f, 1000.0f);
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------------------------
 
 	bool create_shaders()
 	{
@@ -599,6 +610,9 @@ private:
     // Light
     glm::mat4 m_light_view;
     glm::mat4 m_light_proj;
+    glm::vec3 m_light_dir;
+    glm::vec3 m_light_pos;
+    float     m_cone_angle;
     
 	// Uniforms.
 	ObjectUniforms m_object_transforms;
