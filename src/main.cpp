@@ -7,7 +7,6 @@
 #include <stack>
 #include <random>
 #include <chrono>
-#include "camera.h"
 
 #define CAMERA_FAR_PLANE 1000.0f
 #define RSM_SIZE 1024
@@ -45,6 +44,8 @@ protected:
 		if (!load_scene())
 			return false;
         
+        create_framebuffers();
+        
         create_spot_light();
 
 		// Create camera.
@@ -66,10 +67,10 @@ protected:
 		update_global_uniforms(m_global_uniforms);
 		update_object_uniforms(m_object_transforms);
 
-        render_rsm();
+//        render_rsm();
         render_gbuffer();
-        direct_lighting();
-        indirect_lighting();
+//        direct_lighting();
+//        indirect_lighting();
         
 //        if (m_debug_mode)
 //            m_debug_draw.frustum(m_flythrough_camera->projection * m_flythrough_camera->view, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -92,16 +93,11 @@ protected:
 
 	void window_resized(int width, int height) override
 	{
-		ProjectionInfo info;
-
-		info.type = PROJ_PERSPECTIVE;
-		info.perspective.n = 0.1f;
-		info.perspective.f = CAMERA_FAR_PLANE;
-		info.perspective.fov = 60.0f;
-		info.perspective.aspect_ratio = float(m_width) / float(m_height);
-
-		m_flythrough_camera->set_projection(info);
-		m_debug_camera->set_projection(info);
+        // Override window resized method to update camera projection.
+        m_main_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
+        m_debug_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height));
+        
+        create_framebuffers();
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
@@ -286,17 +282,17 @@ private:
     
     void create_framebuffers()
     {
-        m_gbuffer_albedo_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
-        m_gbuffer_normals_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
-        m_gbuffer_world_pos_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
-        m_gbuffer_depth_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+        m_gbuffer_albedo_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+        m_gbuffer_normals_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_gbuffer_world_pos_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
+        m_gbuffer_depth_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
         
-        m_rsm_flux_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
-        m_rsm_normals_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
-        m_rsm_world_pos_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
-        m_rsm_depth_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+        m_rsm_flux_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, 1, GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+        m_rsm_normals_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_rsm_world_pos_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
+        m_rsm_depth_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
         
-        m_direct_light_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_direct_light_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
         
         m_gbuffer_fbo = std::make_unique<dw::Framebuffer>();
         
@@ -331,14 +327,14 @@ private:
     
     void render_rsm()
     {
-        render_scene(m_rsm_fbo, m_rsm_program, RSM_SIZE, RSM_SIZE, GL_FRONT);
+        render_scene(m_rsm_fbo.get(), m_rsm_program, RSM_SIZE, RSM_SIZE, GL_FRONT);
     }
     
     // -----------------------------------------------------------------------------------------------------------------------------------
     
     void render_gbuffer()
     {
-        render_scene(m_gbuffer_fbo, m_gbuffer_program, m_width, m_height, GL_BACK);
+        render_scene(nullptr, m_gbuffer_program, m_width, m_height, GL_BACK);
     }
     
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -439,20 +435,11 @@ private:
 
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void create_camera()
-	{
-		ProjectionInfo info;
-
-		info.type = PROJ_PERSPECTIVE;
-		info.perspective.n = 0.1f;
-		info.perspective.f = CAMERA_FAR_PLANE;
-		info.perspective.fov = 60.0f;
-		info.perspective.aspect_ratio = float(m_width) / float(m_height);
-
-		m_flythrough_camera = std::make_unique<FlythroughCamera>(glm::vec3(0.0f), 0.1f, 90.0f, -90.0f, info);
-		m_debug_camera = std::make_unique<FlythroughCamera>(glm::vec3(0.0f), 0.1f, 90.0f, -90.0f, info);
-	}
-
+    void create_camera()
+    {
+        m_main_camera = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height), glm::vec3(0.0f, 5.0f, 150.0f), glm::vec3(0.0f, 0.0, -1.0f));
+        m_debug_camera = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height), glm::vec3(0.0f, 5.0f, 150.0f), glm::vec3(0.0f, 0.0, -1.0f));
+    }
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
 	void render_mesh(dw::Mesh* mesh, std::unique_ptr<dw::Program>& program)
@@ -479,7 +466,7 @@ private:
     
 	// -----------------------------------------------------------------------------------------------------------------------------------
 
-	void render_scene(std::unique_ptr<dw::Framebuffer>& fbo, std::unique_ptr<dw::Program>& program, int w, int h, GLenum cull_face)
+	void render_scene(dw::Framebuffer* fbo, std::unique_ptr<dw::Program>& program, int w, int h, GLenum cull_face)
 	{
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
@@ -527,47 +514,49 @@ private:
 
     // -----------------------------------------------------------------------------------------------------------------------------------
     
-    void update_transforms(Camera* camera)
+    void update_transforms(dw::Camera* camera)
     {
         // Update camera matrices.
-		m_global_uniforms.view_proj = camera->projection * camera->view;
+		m_global_uniforms.view_proj = camera->m_projection * camera->m_view;
         m_global_uniforms.light_view_proj = m_light_proj * m_light_view;
-		m_global_uniforms.cam_pos = glm::vec4(camera->transform.position, 0.0f);
+		m_global_uniforms.cam_pos = glm::vec4(camera->m_position, 0.0f);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
     
     void update_camera()
     {
-		FlythroughCamera* camera = m_flythrough_camera.get();
-
-		if (m_debug_mode)
-			camera = m_debug_camera.get();
-
+        dw::Camera* current = m_main_camera.get();
+        
+        if (m_debug_mode)
+            current = m_debug_camera.get();
+        
         float forward_delta = m_heading_speed * m_delta;
         float right_delta = m_sideways_speed * m_delta;
         
-		if (forward_delta != 0.0f)
-			camera->move_forwards(forward_delta);
-
-		if (right_delta != 0.0f)
-			camera->move_sideways(right_delta);
-
-		m_camera_x = m_mouse_delta_x * m_camera_sensitivity;
-		m_camera_y = m_mouse_delta_y * m_camera_sensitivity;
-
-		float handedness = 1.0f;
-
-#ifndef GLM_FORCE_LEFT_HANDED
-		handedness = -1.0f;
-#endif
+        current->set_translation_delta(current->m_forward, forward_delta);
+        current->set_translation_delta(current->m_right, right_delta);
+        
+        m_camera_x = m_mouse_delta_x * m_camera_sensitivity;
+        m_camera_y = m_mouse_delta_y * m_camera_sensitivity;
         
         if (m_mouse_look)
-			camera->rotate(glm::vec3((float)(handedness * m_camera_y), (float)(handedness * m_camera_x), (float)(0.0f)));
-  
-		update_transforms(camera);
-
-		camera->update(m_delta);
+        {
+            // Activate Mouse Look
+            current->set_rotatation_delta(glm::vec3((float)(m_camera_y),
+                                                    (float)(m_camera_x),
+                                                    (float)(0.0f)));
+        }
+        else
+        {
+            current->set_rotatation_delta(glm::vec3((float)(0),
+                                                    (float)(0),
+                                                    (float)(0)));
+        }
+        
+        current->update();
+        
+        update_transforms(current);
     }
     
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -604,8 +593,8 @@ private:
     std::unique_ptr<dw::UniformBuffer> m_global_ubo;
 
     // Camera.
-	std::unique_ptr<FlythroughCamera> m_flythrough_camera;
-	std::unique_ptr<FlythroughCamera> m_debug_camera;
+    std::unique_ptr<dw::Camera> m_main_camera;
+    std::unique_ptr<dw::Camera> m_debug_camera;
     
     // Light
     glm::mat4 m_light_view;

@@ -27,7 +27,7 @@ uniform vec3 u_Color;
 void main()
 {
     FS_OUT_Albedo = u_Color;
-    FS_IN_Normal = FS_IN_Normal;
+    FS_OUT_Normal = FS_IN_Normal;
     FS_OUT_WorldPos = FS_IN_WorldPos;
 }
 
