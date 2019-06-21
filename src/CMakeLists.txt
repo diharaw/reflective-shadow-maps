@@ -10,7 +10,7 @@ if (EMSCRIPTEN)
 endif()
 
 if(APPLE)
-    add_executable(ReflectiveShadowMaps MACOSX_BUNDLE ${RSM_SOURCES})
+    add_executable(ReflectiveShadowMaps ${RSM_SOURCES})
     set(MACOSX_BUNDLE_BUNDLE_NAME "com.dihara.vct") 
 else()
     add_executable(ReflectiveShadowMaps ${RSM_SOURCES}) 
