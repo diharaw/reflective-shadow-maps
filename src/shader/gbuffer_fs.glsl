@@ -18,7 +18,7 @@ in vec2 FS_IN_TexCoord;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform vec3 u_Color;
+uniform vec4 u_Diffuse;
 
 // ------------------------------------------------------------------
 // MAIN -------------------------------------------------------------
@@ -26,7 +26,10 @@ uniform vec3 u_Color;
 
 void main()
 {
-    FS_OUT_Albedo = u_Color;
+    if (u_Diffuse.a < 0.1)
+        discard;
+    
+    FS_OUT_Albedo = u_Diffuse.xyz;
     FS_OUT_Normal = FS_IN_Normal;
     FS_OUT_WorldPos = FS_IN_WorldPos;
 }

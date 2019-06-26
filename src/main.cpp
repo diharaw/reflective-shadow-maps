@@ -112,9 +112,9 @@ protected:
         
         // Handle sideways movement.
         if(code == GLFW_KEY_A)
-            m_sideways_speed = m_camera_speed;
-        else if(code == GLFW_KEY_D)
             m_sideways_speed = -m_camera_speed;
+        else if(code == GLFW_KEY_D)
+            m_sideways_speed = m_camera_speed;
 
 		if (code == GLFW_KEY_K)
 			m_debug_mode = !m_debug_mode;
@@ -218,6 +218,9 @@ private:
                     DW_LOG_FATAL("Failed to create Shader Program");
                     return false;
                 }
+                
+                m_direct_program->uniform_block_binding("GlobalUniforms", 0);
+                m_direct_program->uniform_block_binding("ObjectUniforms", 1);
             }
             
             {
@@ -236,6 +239,9 @@ private:
                     DW_LOG_FATAL("Failed to create Shader Program");
                     return false;
                 }
+                
+                m_indirect_program->uniform_block_binding("GlobalUniforms", 0);
+                m_indirect_program->uniform_block_binding("ObjectUniforms", 1);
             }
             
             {
@@ -254,6 +260,9 @@ private:
                     DW_LOG_FATAL("Failed to create Shader Program");
                     return false;
                 }
+                
+                m_rsm_program->uniform_block_binding("GlobalUniforms", 0);
+                m_rsm_program->uniform_block_binding("ObjectUniforms", 1);
             }
             
             {
@@ -272,6 +281,9 @@ private:
                     DW_LOG_FATAL("Failed to create Shader Program");
                     return false;
                 }
+                
+                m_gbuffer_program->uniform_block_binding("GlobalUniforms", 0);
+                m_gbuffer_program->uniform_block_binding("ObjectUniforms", 1);
             }
 		}
 
@@ -469,8 +481,14 @@ private:
 	void render_scene(dw::Framebuffer* fbo, std::unique_ptr<dw::Program>& program, int w, int h, GLenum cull_face)
 	{
 		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-        glCullFace(cull_face);
+        
+        if (cull_face == GL_NONE)
+            glDisable(GL_CULL_FACE);
+        else
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace(cull_face);
+        }
 
         if (fbo)
             fbo->bind();
