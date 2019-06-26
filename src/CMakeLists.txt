@@ -1,29 +1,32 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
+find_program(CLANG_FORMAT_EXE NAMES "clang-format" DOC "Path to clang-format executable")
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 set(RSM_SOURCES ${PROJECT_SOURCE_DIR}/src/main.cpp)
+set(ASSET_SOURCES ${PROJECT_SOURCE_DIR}/data/cornell_box.obj
+                  ${PROJECT_SOURCE_DIR}/data/cornell_box.mtl)
 
-if (EMSCRIPTEN)
-    set(CMAKE_EXECUTABLE_SUFFIX ".html")
-endif()
+file(GLOB_RECURSE SHADER_SOURCES ${PROJECT_SOURCE_DIR}/src/*.glsl)
 
 if(APPLE)
-    add_executable(ReflectiveShadowMaps ${RSM_SOURCES})
-    set(MACOSX_BUNDLE_BUNDLE_NAME "com.dihara.vct") 
+    add_executable(ReflectiveShadowMaps MACOSX_BUNDLE ${RSM_SOURCES} ${SHADER_SOURCES} ${ASSET_SOURCES})
+    set(MACOSX_BUNDLE_BUNDLE_NAME "com.dihara.rsm") 
+    set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/shader)
+    set_source_files_properties(${ASSET_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 else()
     add_executable(ReflectiveShadowMaps ${RSM_SOURCES}) 
 endif()
 
 target_link_libraries(ReflectiveShadowMaps dwSampleFramework)
 
-if (EMSCRIPTEN)
-    set_target_properties(ReflectiveShadowMaps PROPERTIES LINK_FLAGS "--embed-file ${PROJECT_SOURCE_DIR}/shader/fs.glsl@shader/fs.glsl --embed-file ${PROJECT_SOURCE_DIR}/shader/fs.glsl@shader/fs.glsl -O3 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s USE_GLFW=3 -s USE_WEBGL2=1")
+if (NOT APPLE)
+    add_custom_command(TARGET ReflectiveShadowMaps POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/shader $<TARGET_FILE_DIR:ReflectiveShadowMaps>/shader)
+    add_custom_command(TARGET ReflectiveShadowMaps POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data $<TARGET_FILE_DIR:ReflectiveShadowMaps>)
 endif()
 
-if (APPLE)
-    add_custom_command(TARGET ReflectiveShadowMaps POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/shader $<TARGET_FILE_DIR:ReflectiveShadowMaps>/ReflectiveShadowMaps.app/Contents/Resources/shader)
-else()
-    add_custom_command(TARGET ReflectiveShadowMaps POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/shader $<TARGET_FILE_DIR:ReflectiveShadowMaps>/shader)
+if(CLANG_FORMAT_EXE)
+    add_custom_target(clang-format-project-files COMMAND ${CLANG_FORMAT_EXE} -i -style=file ${RSM_SOURCES} ${SHADER_SOURCES})
 endif()
