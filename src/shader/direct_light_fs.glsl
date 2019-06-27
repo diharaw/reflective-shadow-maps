@@ -21,8 +21,11 @@ uniform sampler2D s_ShadowMap;
 
 uniform vec3 u_LightPos;
 uniform vec3 u_LightDirection;
-uniform vec3 u_LightColor;
+uniform vec3  u_LightColor;
+uniform float u_LightInnerCutoff;
+uniform float u_LightOuterCutoff;
 uniform float u_LightIntensity;
+uniform float u_LightRange;
 
 // ------------------------------------------------------------------
 // MAIN  ------------------------------------------------------------
@@ -30,11 +33,18 @@ uniform float u_LightIntensity;
 
 void main(void)
 {
-    vec3 albedo = texture(s_Albedo, FS_IN_TexCoord).rgb;
+    vec3 albedo   = texture(s_Albedo, FS_IN_TexCoord).rgb;
     vec3 frag_pos = texture(s_WorldPos, FS_IN_TexCoord).rgb;
-    vec3 N = texture(s_Normals, FS_IN_TexCoord).rgb;
+    vec3 N        = texture(s_Normals, FS_IN_TexCoord).rgb;
+    vec3 L        = normalize(u_LightPos - frag_pos); // FragPos -> LightPos vector
 
-    // @TODO: Implement deferred shading and spot light shadows
+    float theta       = dot(L, normalize(-u_LightDirection));
+    float distance    = length(u_LightPos - u_LightPos);
+    float epsilon     = u_LightInnerCutoff - u_LightOuterCutoff;
+    float attenuation = smoothstep(u_LightRange, 0, distance) * clamp((theta - u_LightOuterCutoff) / epsilon, 0.0, 1.0);
+
+    vec3 color   = albedo * attenuation * u_LightIntensity * u_LightColor;
+    FS_OUT_Color = vec4(color, 1.0);
 }
 
 // ------------------------------------------------------------------

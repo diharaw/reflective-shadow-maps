@@ -73,7 +73,7 @@ protected:
 
         //        render_rsm();
         render_gbuffer();
-        //        direct_lighting();
+        direct_lighting();
         //        indirect_lighting();
 
         //        if (m_debug_mode)
@@ -186,9 +186,13 @@ protected:
 private:
     void create_spot_light()
     {
-        m_cone_angle = 30.0f;
-        m_light_view = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
-        m_light_proj = glm::perspective(glm::radians(2.0f * m_cone_angle), 1.0f, 0.1f, 1000.0f);
+        m_inner_cutoff    = 30.0f;
+        m_outer_cutoff    = 45.0f;
+        m_light_intensity = 1.0f;
+        m_light_range     = 250.0f;
+        m_light_color     = glm::vec3(1.0f, 1.0f, 1.0f);
+        m_light_view      = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
+        m_light_proj      = glm::perspective(glm::radians(2.0f * m_inner_cutoff), 1.0f, 0.1f, 1000.0f);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -348,7 +352,7 @@ private:
 
     void render_gbuffer()
     {
-        render_scene(nullptr, m_gbuffer_program, m_width, m_height, GL_BACK);
+        render_scene(m_gbuffer_fbo.get(), m_gbuffer_program, m_width, m_height, GL_BACK);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -358,7 +362,8 @@ private:
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
 
-        m_direct_light_fbo->bind();
+        //        m_direct_light_fbo->bind();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glViewport(0, 0, m_width, m_height);
 
@@ -376,6 +381,17 @@ private:
 
         if (m_direct_program->set_uniform("s_WorldPos", 2))
             m_gbuffer_world_pos_rt->bind(2);
+
+        if (m_direct_program->set_uniform("s_ShadowMap", 3))
+            m_rsm_depth_rt->bind(3);
+
+        m_direct_program->set_uniform("u_LightPos", m_light_pos);
+        m_direct_program->set_uniform("u_LightDirection", m_light_dir);
+        m_direct_program->set_uniform("u_LightColor", m_light_color);
+        m_direct_program->set_uniform("u_LightInnerCutoff", cosf(glm::radians(m_inner_cutoff)));
+        m_direct_program->set_uniform("u_LightOuterCutoff", cosf(glm::radians(m_outer_cutoff)));
+        m_direct_program->set_uniform("u_LightIntensity", m_light_intensity);
+        m_direct_program->set_uniform("u_LightRange", m_light_range);
 
         // Bind uniform buffers.
         m_global_ubo->bind_base(0);
@@ -621,7 +637,11 @@ private:
     glm::mat4 m_light_proj;
     glm::vec3 m_light_dir;
     glm::vec3 m_light_pos;
-    float     m_cone_angle;
+    glm::vec3 m_light_color;
+    float     m_inner_cutoff;
+    float     m_outer_cutoff;
+    float     m_light_intensity;
+    float     m_light_range;
 
     // Uniforms.
     ObjectUniforms m_object_transforms;

@@ -2,9 +2,9 @@
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
-layout (location = 0) out vec3 FS_OUT_Albedo;
-layout (location = 1) out vec3 FS_OUT_Normal;
-layout (location = 2) out vec3 FS_OUT_WorldPos;
+layout(location = 0) out vec3 FS_OUT_Albedo;
+layout(location = 1) out vec3 FS_OUT_Normal;
+layout(location = 2) out vec3 FS_OUT_WorldPos;
 
 // ------------------------------------------------------------------
 // INPUT VARIABLES  -------------------------------------------------
@@ -28,9 +28,9 @@ void main()
 {
     if (u_Diffuse.a < 0.1)
         discard;
-    
-    FS_OUT_Albedo = u_Diffuse.xyz;
-    FS_OUT_Normal = FS_IN_Normal;
+
+    FS_OUT_Albedo   = u_Diffuse.xyz;
+    FS_OUT_Normal   = FS_IN_Normal;
     FS_OUT_WorldPos = FS_IN_WorldPos;
 }
 
