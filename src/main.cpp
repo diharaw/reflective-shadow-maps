@@ -70,6 +70,8 @@ protected:
 
         update_global_uniforms(m_global_uniforms);
         update_object_uniforms(m_object_transforms);
+        
+        ui();
 
         //        render_rsm();
         render_gbuffer();
@@ -187,13 +189,21 @@ protected:
 private:
     void create_spot_light()
     {
-        m_inner_cutoff    = 30.0f;
-        m_outer_cutoff    = 35.0f;
+        m_inner_cutoff    = 15.0f;
+        m_outer_cutoff    = 20.0f;
         m_light_intensity = 1.0f;
         m_light_range     = 5.0f;
         m_light_color     = glm::vec3(1.0f, 1.0f, 1.0f);
-        m_light_pos       = glm::vec3(-10.0f, 10.0f, 0.0f);
-        m_light_target    = glm::vec3(10.0f, 0.0f, 0.0f);
+        m_light_pos       = glm::vec3(-10.0f, 20.0f, 20.0f);
+        m_light_target    = glm::vec3(5.0f, 10.0f, 0.0f);
+        
+        update_spot_light();
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    
+    void update_spot_light()
+    {
         m_light_dir       = glm::normalize(m_light_target - m_light_pos);
         m_light_view      = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
         m_light_proj      = glm::perspective(glm::radians(2.0f * m_inner_cutoff), 1.0f, 0.1f, 1000.0f);
@@ -450,6 +460,20 @@ private:
         glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    
+    void ui()
+    {
+        ImGui::InputFloat3("Light Position", &m_light_pos.x);
+        ImGui::InputFloat3("Light Target", &m_light_target.x);
+        ImGui::InputFloat("Light Inner Cutoff", &m_inner_cutoff);
+        ImGui::InputFloat("Light Outer Cutoff", &m_outer_cutoff);
+        ImGui::InputFloat("Light Range", &m_light_range);
+        ImGui::ColorEdit3("Light Color", &m_light_color.x);
+        
+        update_spot_light();
+    }
+    
     // -----------------------------------------------------------------------------------------------------------------------------------
 
     bool load_scene()
