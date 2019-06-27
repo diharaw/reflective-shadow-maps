@@ -13,7 +13,7 @@ file(GLOB_RECURSE SHADER_SOURCES ${PROJECT_SOURCE_DIR}/src/*.glsl)
 
 if(APPLE)
     add_executable(ReflectiveShadowMaps MACOSX_BUNDLE ${RSM_SOURCES} ${SHADER_SOURCES} ${ASSET_SOURCES})
-    set(MACOSX_BUNDLE_BUNDLE_NAME "com.dihara.rsm") 
+    set(MACOSX_BUNDLE_BUNDLE_NAME "Reflective Shadow Maps") 
     set_source_files_properties(${SHADER_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/shader)
     set_source_files_properties(${ASSET_SOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 else()

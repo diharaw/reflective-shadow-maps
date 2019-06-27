@@ -73,6 +73,7 @@ protected:
 
         //        render_rsm();
         render_gbuffer();
+ 
         direct_lighting();
         //        indirect_lighting();
 
@@ -176,7 +177,7 @@ protected:
         settings.major_ver    = 4;
         settings.width        = 1280;
         settings.height       = 720;
-        settings.title        = "Reflective Shadow Maps";
+        settings.title        = "Reflective Shadow Maps (c) 2019 Dihara Wijetunga";
 
         return settings;
     }
@@ -284,7 +285,7 @@ private:
 
                 if (!m_gbuffer_program)
                 {
-                    DW_LOG_FATAL("Failed to create Shader Program");
+                    DW_LOG_FATAL("Failed to create Shader Progxram");
                     return false;
                 }
 
