@@ -188,10 +188,13 @@ private:
     void create_spot_light()
     {
         m_inner_cutoff    = 30.0f;
-        m_outer_cutoff    = 45.0f;
+        m_outer_cutoff    = 35.0f;
         m_light_intensity = 1.0f;
-        m_light_range     = 250.0f;
+        m_light_range     = 5.0f;
         m_light_color     = glm::vec3(1.0f, 1.0f, 1.0f);
+        m_light_pos       = glm::vec3(-10.0f, 10.0f, 0.0f);
+        m_light_target    = glm::vec3(10.0f, 0.0f, 0.0f);
+        m_light_dir       = glm::normalize(m_light_target - m_light_pos);
         m_light_view      = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
         m_light_proj      = glm::perspective(glm::radians(2.0f * m_inner_cutoff), 1.0f, 0.1f, 1000.0f);
     }
@@ -638,6 +641,7 @@ private:
     glm::mat4 m_light_proj;
     glm::vec3 m_light_dir;
     glm::vec3 m_light_pos;
+    glm::vec3 m_light_target;
     glm::vec3 m_light_color;
     float     m_inner_cutoff;
     float     m_outer_cutoff;

@@ -43,7 +43,7 @@ void main(void)
     float epsilon     = u_LightInnerCutoff - u_LightOuterCutoff;
     float attenuation = smoothstep(u_LightRange, 0, distance) * clamp((theta - u_LightOuterCutoff) / epsilon, 0.0, 1.0);
 
-    vec3 color   = albedo * attenuation * u_LightIntensity * u_LightColor;
+    vec3 color   = albedo * dot(N, L) * attenuation * u_LightIntensity * u_LightColor;
     FS_OUT_Color = vec4(color, 1.0);
 }
 
