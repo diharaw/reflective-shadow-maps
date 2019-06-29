@@ -24,6 +24,8 @@ layout(std140) uniform GlobalUniforms
 {
     mat4 view_proj;
     mat4 light_view_proj;
+    mat4 shadow_mat;
+    vec4 cam_pos;
 };
 
 layout(std140) uniform ObjectUniforms

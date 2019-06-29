@@ -73,9 +73,8 @@ protected:
         
         ui();
 
-        //        render_rsm();
+        render_rsm();
         render_gbuffer();
- 
         direct_lighting();
         //        indirect_lighting();
 
@@ -189,13 +188,13 @@ protected:
 private:
     void create_spot_light()
     {
-        m_inner_cutoff    = 15.0f;
-        m_outer_cutoff    = 20.0f;
+        m_inner_cutoff    = 10.0f;
+        m_outer_cutoff    = 15.0f;
         m_light_intensity = 1.0f;
         m_light_range     = 5.0f;
         m_light_color     = glm::vec3(1.0f, 1.0f, 1.0f);
-        m_light_pos       = glm::vec3(-10.0f, 20.0f, 20.0f);
-        m_light_target    = glm::vec3(5.0f, 10.0f, 0.0f);
+        m_light_pos       = glm::vec3(0.0f, 7.0f, 30.0f);
+        m_light_target    = glm::vec3(-6.0f, 7.0f, 0.0f);
         
         update_spot_light();
     }
@@ -206,7 +205,7 @@ private:
     {
         m_light_dir       = glm::normalize(m_light_target - m_light_pos);
         m_light_view      = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
-        m_light_proj      = glm::perspective(glm::radians(2.0f * m_inner_cutoff), 1.0f, 0.1f, 1000.0f);
+        m_light_proj      = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 0.1f, 1000.0f);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -359,7 +358,7 @@ private:
 
     void render_rsm()
     {
-        render_scene(m_rsm_fbo.get(), m_rsm_program, RSM_SIZE, RSM_SIZE, GL_FRONT);
+        render_scene(m_rsm_fbo.get(), m_rsm_program, RSM_SIZE, RSM_SIZE, GL_NONE);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
