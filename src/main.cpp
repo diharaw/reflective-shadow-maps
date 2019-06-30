@@ -25,8 +25,6 @@ struct GlobalUniforms
     DW_ALIGNED(16)
     glm::mat4 light_view_proj;
     DW_ALIGNED(16)
-    glm::mat4 shadow_mat;
-    DW_ALIGNED(16)
     glm::vec4 cam_pos;
 };
 
@@ -192,6 +190,7 @@ private:
         m_outer_cutoff    = 15.0f;
         m_light_intensity = 1.0f;
         m_light_range     = 5.0f;
+        m_light_bias      = 0.001f;
         m_light_color     = glm::vec3(1.0f, 1.0f, 1.0f);
         m_light_pos       = glm::vec3(0.0f, 7.0f, 30.0f);
         m_light_target    = glm::vec3(-6.0f, 7.0f, 0.0f);
@@ -205,7 +204,7 @@ private:
     {
         m_light_dir       = glm::normalize(m_light_target - m_light_pos);
         m_light_view      = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
-        m_light_proj      = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 0.1f, 1000.0f);
+        m_light_proj      = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 1.0f, 1000.0f);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -405,6 +404,7 @@ private:
         m_direct_program->set_uniform("u_LightOuterCutoff", cosf(glm::radians(m_outer_cutoff)));
         m_direct_program->set_uniform("u_LightIntensity", m_light_intensity);
         m_direct_program->set_uniform("u_LightRange", m_light_range);
+        m_direct_program->set_uniform("u_LightBias", m_light_bias);
 
         // Bind uniform buffers.
         m_global_ubo->bind_base(0);
@@ -468,6 +468,7 @@ private:
         ImGui::InputFloat("Light Inner Cutoff", &m_inner_cutoff);
         ImGui::InputFloat("Light Outer Cutoff", &m_outer_cutoff);
         ImGui::InputFloat("Light Range", &m_light_range);
+        ImGui::InputFloat("Light Bias", &m_light_bias);
         ImGui::ColorEdit3("Light Color", &m_light_color.x);
         
         update_spot_light();
@@ -618,6 +619,13 @@ private:
         }
 
         current->update();
+        
+        if (m_flash_light)
+        {
+            m_light_dir       = current->m_forward;
+            m_light_view      = glm::lookAt(current->m_position, current->m_position + current->m_forward, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_light_proj      = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 1.0f, 1000.0f);
+        }
 
         update_transforms(current);
     }
@@ -670,6 +678,8 @@ private:
     float     m_outer_cutoff;
     float     m_light_intensity;
     float     m_light_range;
+    float     m_light_bias;
+    bool      m_flash_light = false;
 
     // Uniforms.
     ObjectUniforms m_object_transforms;
