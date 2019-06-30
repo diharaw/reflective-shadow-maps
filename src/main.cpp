@@ -397,8 +397,8 @@ private:
         if (m_direct_program->set_uniform("s_ShadowMap", 3))
             m_rsm_depth_rt->bind(3);
 
-        m_direct_program->set_uniform("u_LightPos", m_light_pos);
-        m_direct_program->set_uniform("u_LightDirection", m_light_dir);
+        m_direct_program->set_uniform("u_LightPos", m_flash_light ? m_main_camera->m_position : m_light_pos);
+        m_direct_program->set_uniform("u_LightDirection", m_flash_light ? m_main_camera->m_forward : m_light_dir);
         m_direct_program->set_uniform("u_LightColor", m_light_color);
         m_direct_program->set_uniform("u_LightInnerCutoff", cosf(glm::radians(m_inner_cutoff)));
         m_direct_program->set_uniform("u_LightOuterCutoff", cosf(glm::radians(m_outer_cutoff)));
@@ -463,8 +463,14 @@ private:
     
     void ui()
     {
-        ImGui::InputFloat3("Light Position", &m_light_pos.x);
-        ImGui::InputFloat3("Light Target", &m_light_target.x);
+        ImGui::Checkbox("Use as Flashlight", &m_flash_light);
+        
+        if (!m_flash_light)
+        {
+            ImGui::InputFloat3("Light Position", &m_light_pos.x);
+            ImGui::InputFloat3("Light Target", &m_light_target.x);
+        }
+        
         ImGui::InputFloat("Light Inner Cutoff", &m_inner_cutoff);
         ImGui::InputFloat("Light Outer Cutoff", &m_outer_cutoff);
         ImGui::InputFloat("Light Range", &m_light_range);
@@ -622,8 +628,8 @@ private:
         
         if (m_flash_light)
         {
-            m_light_dir       = current->m_forward;
-            m_light_view      = glm::lookAt(current->m_position, current->m_position + current->m_forward, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_light_dir       = m_main_camera->m_forward;
+            m_light_view      = glm::lookAt(m_main_camera->m_position, m_main_camera->m_position + m_main_camera->m_forward, glm::vec3(0.0f, 1.0f, 0.0f));
             m_light_proj      = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 1.0f, 1000.0f);
         }
 
