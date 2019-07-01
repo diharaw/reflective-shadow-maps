@@ -10,6 +10,7 @@
 
 #define CAMERA_FAR_PLANE 1000.0f
 #define RSM_SIZE 1024
+#define SAMPLES_SIZE 32
 
 // Uniform buffer data structure.
 struct ObjectUniforms
@@ -47,7 +48,7 @@ protected:
             return false;
 
         create_framebuffers();
-
+        create_samples_texture();
         create_spot_light();
 
         // Create camera.
@@ -196,6 +197,18 @@ private:
         m_light_target    = glm::vec3(-6.0f, 7.0f, 0.0f);
         
         update_spot_light();
+    }
+    
+    // -----------------------------------------------------------------------------------------------------------------------------------
+    
+    void create_samples_texture()
+    {
+        m_samples_texture = std::make_unique<dw::Texture2D>(SAMPLES_SIZE, m_height, 1, 1, 1, GL_RG16F, GL_RG, GL_HALF_FLOAT);
+        
+        for (int i = 0; i < SAMPLES_SIZE; i++)
+        {
+            
+        }
     }
     
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -686,6 +699,10 @@ private:
     float     m_light_range;
     float     m_light_bias;
     bool      m_flash_light = false;
+    
+    // RSM
+    int m_num_samples = 32;
+    std::unique_ptr<dw::Texture2D> m_samples_texture;
 
     // Uniforms.
     ObjectUniforms m_object_transforms;
