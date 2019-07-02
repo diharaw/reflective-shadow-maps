@@ -10,7 +10,7 @@
 
 #define CAMERA_FAR_PLANE 1000.0f
 #define RSM_SIZE 1024
-#define SAMPLES_SIZE 32
+#define SAMPLES_TEXTURE_SIZE 64
 
 // Uniform buffer data structure.
 struct ObjectUniforms
@@ -203,12 +203,24 @@ private:
     
     void create_samples_texture()
     {
-        m_samples_texture = std::make_unique<dw::Texture2D>(SAMPLES_SIZE, m_height, 1, 1, 1, GL_RG16F, GL_RG, GL_HALF_FLOAT);
+        std::default_random_engine engine;
+        std::uniform_real_distribution<float> dis(0.0f, 1.0f);
         
-        for (int i = 0; i < SAMPLES_SIZE; i++)
+        std::vector<glm::vec3> samples;
+        
+        for (int i = 0; i < m_num_samples; i++)
         {
+            float xi1 = dis(engine);
+            float xi2 = dis(engine);
             
+            float x = xi1 * sin(2.0f * M_PI * xi2);
+            float y = xi1 * cos(2.0f * M_PI * xi2);
+
+            samples.push_back(glm::vec3(x, y, xi1));
         }
+        
+        m_samples_texture = std::make_unique<dw::Texture2D>(SAMPLES_TEXTURE_SIZE, 1, 1, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
+        m_samples_texture->set_data(0, 0, samples.data());
     }
     
     // -----------------------------------------------------------------------------------------------------------------------------------
