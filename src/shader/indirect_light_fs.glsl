@@ -64,11 +64,11 @@ void main(void)
 
     for (int i = 0; i < u_NumSamples; i++)
     {
-        vec3 sample = texture(s_Samples, vec2(float(i) / float(SAMPLES_TEXTURE_SIZE - 1))).rgb;
-        vec2 offset = sample.xy;
-        float weight = sample.z;
+        vec3 cur = texture(s_Samples, vec2(float(i) / float(SAMPLES_TEXTURE_SIZE), 0.0)).rgb;
+        vec2 offset = cur.xy;
+        float weight = cur.z;
 
-        vec2 tex_coord = light_coord + offset * u_SampleRadius * texel_size;
+        vec2 tex_coord = light_coord.xy + offset * u_SampleRadius * texel_size;
 
         vec3 vpl_pos = texture(s_RSMWorldPos, tex_coord).rgb;
         vec3 vpl_normal = texture(s_RSMNormals, tex_coord).rgb;

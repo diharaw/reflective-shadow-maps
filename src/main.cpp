@@ -75,7 +75,7 @@ protected:
         render_rsm();
         render_gbuffer();
         direct_lighting();
-        //        indirect_lighting();
+        indirect_lighting();
 
         //        if (m_debug_mode)
         //            m_debug_draw.frustum(m_flythrough_camera->projection * m_flythrough_camera->view, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -399,7 +399,7 @@ private:
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
 
-        //        m_direct_light_fbo->bind();
+        //m_direct_light_fbo->bind();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glViewport(0, 0, m_width, m_height);
@@ -445,14 +445,13 @@ private:
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
         glEnable(GL_BLEND);
+        glBlendFunc (GL_ONE, GL_ONE);
 
-        m_direct_light_fbo->bind();
+//        m_direct_light_fbo->bind();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glViewport(0, 0, m_width, m_height);
-
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
+        
         // Bind shader program.
         m_indirect_program->use();
 
@@ -478,6 +477,8 @@ private:
             m_samples_texture->bind(6);
 
         m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
+        m_indirect_program->set_uniform("u_SampleRadius", m_sample_radius);
+        m_indirect_program->set_uniform("u_IndirectLightAmount", m_indirect_light_amount);
         
         // Bind uniform buffers.
         m_global_ubo->bind_base(0);
@@ -716,6 +717,8 @@ private:
     
     // RSM
     int m_num_samples = 32;
+    float m_indirect_light_amount = 3.0f;
+    float m_sample_radius = 300.0f;
     std::unique_ptr<dw::Texture2D> m_samples_texture;
 
     // Uniforms.
