@@ -14,15 +14,20 @@ out vec4 FS_OUT_Color;
 // UNIFORMS  --------------------------------------------------------
 // ------------------------------------------------------------------
 
-uniform sampler2D s_WorldPos;
+uniform sampler2D s_DirectLight;
 uniform sampler2D s_Normals;
-uniform sampler2D s_Albedo;
-uniform sampler2D s_ShadowMap;
+uniform sampler2D s_WorldPos;
+uniform sampler2D s_RSMFlux;
+uniform sampler2D s_RSMNormals;
+uniform sampler2D s_RSMWorldPos;
+uniform sampler2D s_RSM;
+uniform sampler2D s_Samples;
 
 uniform vec3 u_LightPos;
 uniform vec3 u_LightDirection;
 uniform vec3  u_LightColor;
 uniform float u_LightIntensity;
+uniform int u_NumSamples;
 
 // ------------------------------------------------------------------
 // MAIN  ------------------------------------------------------------
