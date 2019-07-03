@@ -474,11 +474,8 @@ private:
         if (m_indirect_program->set_uniform("s_RSMWorldPos", 5))
             m_rsm_world_pos_rt->bind(5);
 
-        if (m_indirect_program->set_uniform("s_RSM", 6))
-            m_rsm_depth_rt->bind(6);
-        
-        if (m_indirect_program->set_uniform("s_Samples", 7))
-            m_samples_texture->bind(7);
+        if (m_indirect_program->set_uniform("s_Samples", 6))
+            m_samples_texture->bind(6);
 
         m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
         
