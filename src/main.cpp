@@ -476,7 +476,12 @@ private:
 
         if (m_indirect_program->set_uniform("s_RSM", 6))
             m_rsm_depth_rt->bind(6);
+        
+        if (m_indirect_program->set_uniform("s_Samples", 7))
+            m_samples_texture->bind(7);
 
+        m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
+        
         // Bind uniform buffers.
         m_global_ubo->bind_base(0);
 
