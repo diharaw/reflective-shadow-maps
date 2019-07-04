@@ -75,7 +75,9 @@ protected:
         render_rsm();
         render_gbuffer();
         direct_lighting();
-        indirect_lighting();
+        
+        if (m_rsm_enabled)
+            indirect_lighting();
 
         //        if (m_debug_mode)
         //            m_debug_draw.frustum(m_flythrough_camera->projection * m_flythrough_camera->view, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -208,7 +210,7 @@ private:
         
         std::vector<glm::vec3> samples;
         
-        for (int i = 0; i < m_num_samples; i++)
+        for (int i = 0; i < SAMPLES_TEXTURE_SIZE; i++)
         {
             float xi1 = dis(engine);
             float xi2 = dis(engine);
@@ -321,7 +323,7 @@ private:
 
                 if (!m_gbuffer_program)
                 {
-                    DW_LOG_FATAL("Failed to create Shader Progxram");
+                    DW_LOG_FATAL("Failed to create Shader Program");
                     return false;
                 }
 
@@ -398,6 +400,7 @@ private:
     {
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
+        glDisable(GL_BLEND);
 
         //m_direct_light_fbo->bind();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -455,26 +458,23 @@ private:
         // Bind shader program.
         m_indirect_program->use();
 
-        if (m_indirect_program->set_uniform("s_DirectLight", 0))
-            m_direct_light_rt->bind(0);
+        if (m_indirect_program->set_uniform("s_Normals", 0))
+            m_gbuffer_normals_rt->bind(0);
 
-        if (m_indirect_program->set_uniform("s_Normals", 1))
-            m_gbuffer_normals_rt->bind(1);
+        if (m_indirect_program->set_uniform("s_WorldPos", 1))
+            m_gbuffer_world_pos_rt->bind(1);
 
-        if (m_indirect_program->set_uniform("s_WorldPos", 2))
-            m_gbuffer_world_pos_rt->bind(2);
+        if (m_indirect_program->set_uniform("s_RSMFlux", 2))
+            m_rsm_flux_rt->bind(2);
 
-        if (m_indirect_program->set_uniform("s_RSMFlux", 3))
-            m_rsm_flux_rt->bind(3);
+        if (m_indirect_program->set_uniform("s_RSMNormals", 3))
+            m_rsm_normals_rt->bind(3);
 
-        if (m_indirect_program->set_uniform("s_RSMNormals", 4))
-            m_rsm_normals_rt->bind(4);
+        if (m_indirect_program->set_uniform("s_RSMWorldPos", 4))
+            m_rsm_world_pos_rt->bind(4);
 
-        if (m_indirect_program->set_uniform("s_RSMWorldPos", 5))
-            m_rsm_world_pos_rt->bind(5);
-
-        if (m_indirect_program->set_uniform("s_Samples", 6))
-            m_samples_texture->bind(6);
+        if (m_indirect_program->set_uniform("s_Samples", 5))
+            m_samples_texture->bind(5);
 
         m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
         m_indirect_program->set_uniform("u_SampleRadius", m_sample_radius);
@@ -491,6 +491,7 @@ private:
     
     void ui()
     {
+        ImGui::Checkbox("Indirect Lighting", &m_rsm_enabled);
         ImGui::Checkbox("Use as Flashlight", &m_flash_light);
         
         if (!m_flash_light)
@@ -499,12 +500,35 @@ private:
             ImGui::InputFloat3("Light Target", &m_light_target.x);
         }
         
+        ImGui::InputInt("Num RSM Samples", &m_num_samples);
+        ImGui::InputFloat("Sample Radius", &m_sample_radius);
+        ImGui::InputFloat("Indirect Light Amount", &m_indirect_light_amount);
         ImGui::InputFloat("Light Inner Cutoff", &m_inner_cutoff);
         ImGui::InputFloat("Light Outer Cutoff", &m_outer_cutoff);
         ImGui::InputFloat("Light Range", &m_light_range);
         ImGui::InputFloat("Light Bias", &m_light_bias);
         ImGui::ColorEdit3("Light Color", &m_light_color.x);
         
+        ImGui::Separator();
+        
+        if (ImGui::Button("G-Buffer Albedo"))
+            m_gbuffer_albedo_rt->save_to_disk("GBuffer_Albedo", 0, 0);
+        
+        if (ImGui::Button("G-Buffer World Pos"))
+            m_gbuffer_world_pos_rt->save_to_disk("GBuffer_WorldPos", 0, 0);
+        
+        if (ImGui::Button("G-Buffer Normals"))
+            m_gbuffer_normals_rt->save_to_disk("GBuffer_Normal", 0, 0);
+        
+        if (ImGui::Button("RSM Flux"))
+            m_rsm_flux_rt->save_to_disk("RSM_Flux", 0, 0);
+        
+        if (ImGui::Button("RSM World Pos"))
+            m_rsm_world_pos_rt->save_to_disk("RSM_WorldPos", 0, 0);
+        
+        if (ImGui::Button("RSM Normals"))
+            m_rsm_normals_rt->save_to_disk("RSM_Normals", 0, 0);
+   
         update_spot_light();
     }
     
@@ -561,6 +585,7 @@ private:
     void render_scene(dw::Framebuffer* fbo, std::unique_ptr<dw::Program>& program, int w, int h, GLenum cull_face)
     {
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
 
         if (cull_face == GL_NONE)
             glDisable(GL_CULL_FACE);
@@ -716,8 +741,9 @@ private:
     bool      m_flash_light = false;
     
     // RSM
-    int m_num_samples = 32;
-    float m_indirect_light_amount = 3.0f;
+    bool m_rsm_enabled = false;
+    int m_num_samples = 64;
+    float m_indirect_light_amount = 0.1f;
     float m_sample_radius = 300.0f;
     std::unique_ptr<dw::Texture2D> m_samples_texture;
 

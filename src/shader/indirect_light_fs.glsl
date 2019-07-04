@@ -21,7 +21,6 @@ layout(std140) uniform GlobalUniforms
     vec4 cam_pos;
 };
 
-uniform sampler2D s_DirectLight;
 uniform sampler2D s_Normals;
 uniform sampler2D s_WorldPos;
 uniform sampler2D s_RSMFlux;
