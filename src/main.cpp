@@ -102,7 +102,6 @@ protected:
     {
         // Override window resized method to update camera projection.
         m_main_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height));
-        m_debug_camera->update_projection(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height));
 
         create_framebuffers();
     }
@@ -122,9 +121,6 @@ protected:
             m_sideways_speed = -m_camera_speed;
         else if (code == GLFW_KEY_D)
             m_sideways_speed = m_camera_speed;
-
-        if (code == GLFW_KEY_K)
-            m_debug_mode = !m_debug_mode;
 
         if (code == GLFW_KEY_SPACE)
             m_mouse_look = true;
@@ -554,7 +550,6 @@ private:
     void create_camera()
     {
         m_main_camera  = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height), glm::vec3(0.0f, 10.0f, 30.0f), glm::vec3(0.0f, 0.0, -1.0f));
-        m_debug_camera = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE * 2.0f, float(m_width) / float(m_height), glm::vec3(0.0f, 5.0f, 150.0f), glm::vec3(0.0f, 0.0, -1.0f));
     }
     // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -650,10 +645,7 @@ private:
     void update_camera()
     {
         dw::Camera* current = m_main_camera.get();
-
-        if (m_debug_mode)
-            current = m_debug_camera.get();
-
+        
         float forward_delta = m_heading_speed * m_delta;
         float right_delta   = m_sideways_speed * m_delta;
 
@@ -724,8 +716,7 @@ private:
 
     // Camera.
     std::unique_ptr<dw::Camera> m_main_camera;
-    std::unique_ptr<dw::Camera> m_debug_camera;
-
+    
     // Light
     glm::mat4 m_light_view;
     glm::mat4 m_light_proj;
@@ -756,7 +747,6 @@ private:
 
     // Camera controls.
     bool  m_mouse_look         = false;
-    bool  m_debug_mode         = false;
     float m_heading_speed      = 0.0f;
     float m_sideways_speed     = 0.0f;
     float m_camera_sensitivity = 0.05f;
