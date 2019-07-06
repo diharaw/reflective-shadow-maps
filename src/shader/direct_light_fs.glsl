@@ -44,7 +44,7 @@ float exp_01_to_linear_01_depth(float z, float n, float f)
 {
     float z_buffer_params_y = f / n;
     float z_buffer_params_x = 1.0 - z_buffer_params_y;
-    
+
     return 1.0 / (z_buffer_params_x * z + z_buffer_params_y);
 }
 
@@ -54,7 +54,7 @@ float spot_light_shadows(vec3 p)
 {
     // Transform frag position into Light-space.
     vec4 light_space_pos = light_view_proj * vec4(p, 1.0);
-    
+
     vec3 proj_coords = light_space_pos.xyz / light_space_pos.w;
     // transform to [0,1] range
     proj_coords = proj_coords * 0.5 + 0.5;
@@ -66,9 +66,9 @@ float spot_light_shadows(vec3 p)
     float linear_closest_depth = exp_01_to_linear_01_depth(closest_depth, 1.0, u_LightRange);
     float linear_current_depth = exp_01_to_linear_01_depth(current_depth, 1.0, u_LightRange);
     // check whether current frag pos is in shadow
-    float bias = u_LightBias;
-    float shadow = linear_current_depth - bias > linear_closest_depth  ? 1.0 : 0.0;
-    
+    float bias   = u_LightBias;
+    float shadow = linear_current_depth - bias > linear_closest_depth ? 1.0 : 0.0;
+
     return 1.0 - shadow;
 }
 

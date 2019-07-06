@@ -69,13 +69,13 @@ protected:
 
         update_global_uniforms(m_global_uniforms);
         update_object_uniforms(m_object_transforms);
-        
+
         ui();
 
         render_rsm();
         render_gbuffer();
         direct_lighting();
-        
+
         if (m_rsm_enabled)
             indirect_lighting();
 
@@ -193,41 +193,41 @@ private:
         m_light_color     = glm::vec3(1.0f, 1.0f, 1.0f);
         m_light_pos       = glm::vec3(0.0f, 7.0f, 30.0f);
         m_light_target    = glm::vec3(-6.0f, 7.0f, 0.0f);
-        
+
         update_spot_light();
     }
-    
+
     // -----------------------------------------------------------------------------------------------------------------------------------
-    
+
     void create_samples_texture()
     {
-        std::default_random_engine engine;
+        std::default_random_engine            engine;
         std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-        
+
         std::vector<glm::vec3> samples;
-        
+
         for (int i = 0; i < SAMPLES_TEXTURE_SIZE; i++)
         {
             float xi1 = dis(engine);
             float xi2 = dis(engine);
-            
+
             float x = xi1 * sin(2.0f * M_PI * xi2);
             float y = xi1 * cos(2.0f * M_PI * xi2);
 
             samples.push_back(glm::vec3(x, y, xi1));
         }
-        
+
         m_samples_texture = std::make_unique<dw::Texture2D>(SAMPLES_TEXTURE_SIZE, 1, 1, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
         m_samples_texture->set_data(0, 0, samples.data());
     }
-    
+
     // -----------------------------------------------------------------------------------------------------------------------------------
-    
+
     void update_spot_light()
     {
-        m_light_dir       = glm::normalize(m_light_target - m_light_pos);
-        m_light_view      = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
-        m_light_proj      = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 1.0f, 1000.0f);
+        m_light_dir  = glm::normalize(m_light_target - m_light_pos);
+        m_light_view = glm::lookAt(m_light_pos, m_light_pos + m_light_dir, glm::vec3(0.0f, 1.0f, 0.0f));
+        m_light_proj = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 1.0f, 1000.0f);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -444,13 +444,13 @@ private:
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
         glEnable(GL_BLEND);
-        glBlendFunc (GL_ONE, GL_ONE);
+        glBlendFunc(GL_ONE, GL_ONE);
 
-//        m_direct_light_fbo->bind();
+        //        m_direct_light_fbo->bind();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glViewport(0, 0, m_width, m_height);
-        
+
         // Bind shader program.
         m_indirect_program->use();
 
@@ -475,7 +475,7 @@ private:
         m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
         m_indirect_program->set_uniform("u_SampleRadius", m_sample_radius);
         m_indirect_program->set_uniform("u_IndirectLightAmount", m_indirect_light_amount);
-        
+
         // Bind uniform buffers.
         m_global_ubo->bind_base(0);
 
@@ -484,18 +484,18 @@ private:
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
-    
+
     void ui()
     {
         ImGui::Checkbox("Indirect Lighting", &m_rsm_enabled);
         ImGui::Checkbox("Use as Flashlight", &m_flash_light);
-        
+
         if (!m_flash_light)
         {
             ImGui::InputFloat3("Light Position", &m_light_pos.x);
             ImGui::InputFloat3("Light Target", &m_light_target.x);
         }
-        
+
         ImGui::InputInt("Num RSM Samples", &m_num_samples);
         ImGui::InputFloat("Sample Radius", &m_sample_radius);
         ImGui::InputFloat("Indirect Light Amount", &m_indirect_light_amount);
@@ -504,30 +504,30 @@ private:
         ImGui::InputFloat("Light Range", &m_light_range);
         ImGui::InputFloat("Light Bias", &m_light_bias);
         ImGui::ColorEdit3("Light Color", &m_light_color.x);
-        
+
         ImGui::Separator();
-        
+
         if (ImGui::Button("G-Buffer Albedo"))
             m_gbuffer_albedo_rt->save_to_disk("GBuffer_Albedo", 0, 0);
-        
+
         if (ImGui::Button("G-Buffer World Pos"))
             m_gbuffer_world_pos_rt->save_to_disk("GBuffer_WorldPos", 0, 0);
-        
+
         if (ImGui::Button("G-Buffer Normals"))
             m_gbuffer_normals_rt->save_to_disk("GBuffer_Normal", 0, 0);
-        
+
         if (ImGui::Button("RSM Flux"))
             m_rsm_flux_rt->save_to_disk("RSM_Flux", 0, 0);
-        
+
         if (ImGui::Button("RSM World Pos"))
             m_rsm_world_pos_rt->save_to_disk("RSM_WorldPos", 0, 0);
-        
+
         if (ImGui::Button("RSM Normals"))
             m_rsm_normals_rt->save_to_disk("RSM_Normals", 0, 0);
-   
+
         update_spot_light();
     }
-    
+
     // -----------------------------------------------------------------------------------------------------------------------------------
 
     bool load_scene()
@@ -549,7 +549,7 @@ private:
 
     void create_camera()
     {
-        m_main_camera  = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height), glm::vec3(0.0f, 10.0f, 30.0f), glm::vec3(0.0f, 0.0, -1.0f));
+        m_main_camera = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height), glm::vec3(0.0f, 10.0f, 30.0f), glm::vec3(0.0f, 0.0, -1.0f));
     }
     // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -645,7 +645,7 @@ private:
     void update_camera()
     {
         dw::Camera* current = m_main_camera.get();
-        
+
         float forward_delta = m_heading_speed * m_delta;
         float right_delta   = m_sideways_speed * m_delta;
 
@@ -670,12 +670,12 @@ private:
         }
 
         current->update();
-        
+
         if (m_flash_light)
         {
-            m_light_dir       = m_main_camera->m_forward;
-            m_light_view      = glm::lookAt(m_main_camera->m_position, m_main_camera->m_position + m_main_camera->m_forward, glm::vec3(0.0f, 1.0f, 0.0f));
-            m_light_proj      = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 1.0f, 1000.0f);
+            m_light_dir  = m_main_camera->m_forward;
+            m_light_view = glm::lookAt(m_main_camera->m_position, m_main_camera->m_position + m_main_camera->m_forward, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_light_proj = glm::perspective(glm::radians(2.0f * m_outer_cutoff), 1.0f, 1.0f, 1000.0f);
         }
 
         update_transforms(current);
@@ -716,7 +716,7 @@ private:
 
     // Camera.
     std::unique_ptr<dw::Camera> m_main_camera;
-    
+
     // Light
     glm::mat4 m_light_view;
     glm::mat4 m_light_proj;
@@ -730,12 +730,12 @@ private:
     float     m_light_range;
     float     m_light_bias;
     bool      m_flash_light = false;
-    
+
     // RSM
-    bool m_rsm_enabled = false;
-    int m_num_samples = 64;
-    float m_indirect_light_amount = 0.1f;
-    float m_sample_radius = 300.0f;
+    bool                           m_rsm_enabled           = false;
+    int                            m_num_samples           = 64;
+    float                          m_indirect_light_amount = 0.1f;
+    float                          m_sample_radius         = 300.0f;
     std::unique_ptr<dw::Texture2D> m_samples_texture;
 
     // Uniforms.

@@ -30,7 +30,7 @@ uniform sampler2D s_Samples;
 
 uniform float u_SampleRadius;
 uniform float u_IndirectLightAmount;
-uniform int u_NumSamples;
+uniform int   u_NumSamples;
 
 // ------------------------------------------------------------------
 // DEFINES  ---------------------------------------------------------
@@ -63,15 +63,15 @@ void main(void)
 
     for (int i = 0; i < u_NumSamples; i++)
     {
-        vec3 cur = texture(s_Samples, vec2(float(i) / float(SAMPLES_TEXTURE_SIZE), 0.0)).rgb;
-        vec2 offset = cur.xy;
+        vec3  cur    = texture(s_Samples, vec2(float(i) / float(SAMPLES_TEXTURE_SIZE), 0.0)).rgb;
+        vec2  offset = cur.xy;
         float weight = cur.z;
 
         vec2 tex_coord = light_coord.xy + offset * u_SampleRadius * texel_size;
 
-        vec3 vpl_pos = texture(s_RSMWorldPos, tex_coord).rgb;
+        vec3 vpl_pos    = texture(s_RSMWorldPos, tex_coord).rgb;
         vec3 vpl_normal = texture(s_RSMNormals, tex_coord).rgb;
-        vec3 vpl_flux = texture(s_RSMFlux, tex_coord).rgb;
+        vec3 vpl_flux   = texture(s_RSMFlux, tex_coord).rgb;
 
         // RSM Pos -> Frag Pos
         vec3 L = normalize(P - vpl_pos);
