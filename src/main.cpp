@@ -74,9 +74,11 @@ protected:
 
         render_rsm();
         render_gbuffer();
-        direct_lighting();
+        
+        if (!m_indirect_only)
+            direct_lighting();
 
-        if (m_rsm_enabled)
+        if (m_rsm_enabled || m_indirect_only)
             indirect_lighting();
 
         //        if (m_debug_mode)
@@ -344,6 +346,16 @@ private:
         m_rsm_normals_rt   = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
         m_rsm_world_pos_rt = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, 1, GL_RGB32F, GL_RGB, GL_FLOAT);
         m_rsm_depth_rt     = std::make_unique<dw::Texture2D>(RSM_SIZE, RSM_SIZE, 1, 1, 1, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+        
+        m_gbuffer_albedo_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        m_gbuffer_normals_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        m_gbuffer_world_pos_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        m_gbuffer_depth_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        
+        m_rsm_flux_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        m_rsm_normals_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        m_rsm_world_pos_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        m_rsm_depth_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
         m_direct_light_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 
@@ -448,8 +460,14 @@ private:
 
         //        m_direct_light_fbo->bind();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+        
         glViewport(0, 0, m_width, m_height);
+        
+        if (m_indirect_only)
+        {
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
 
         // Bind shader program.
         m_indirect_program->use();
@@ -488,6 +506,7 @@ private:
     void ui()
     {
         ImGui::Checkbox("Indirect Lighting", &m_rsm_enabled);
+        ImGui::Checkbox("Indirect Only", &m_indirect_only);
         ImGui::Checkbox("Use as Flashlight", &m_flash_light);
 
         if (!m_flash_light)
@@ -551,6 +570,7 @@ private:
     {
         m_main_camera = std::make_unique<dw::Camera>(60.0f, 0.1f, CAMERA_FAR_PLANE, float(m_width) / float(m_height), glm::vec3(0.0f, 10.0f, 30.0f), glm::vec3(0.0f, 0.0, -1.0f));
     }
+    
     // -----------------------------------------------------------------------------------------------------------------------------------
 
     void render_mesh(dw::Mesh* mesh, std::unique_ptr<dw::Program>& program)
@@ -733,6 +753,7 @@ private:
 
     // RSM
     bool                           m_rsm_enabled           = false;
+    bool                           m_indirect_only         = false;
     int                            m_num_samples           = 64;
     float                          m_indirect_light_amount = 0.1f;
     float                          m_sample_radius         = 300.0f;

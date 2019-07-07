@@ -52,7 +52,7 @@ void main(void)
     vec4 light_coord = light_view_proj * vec4(P, 1.0);
 
     // Perspective divide.
-    light_coord /= light_coord.w;
+    light_coord.xyz /= light_coord.w;
 
     // Remap to [0.0 - 1.0] range.
     light_coord = light_coord * 0.5 + 0.5;
@@ -63,23 +63,16 @@ void main(void)
 
     for (int i = 0; i < u_NumSamples; i++)
     {
-        vec3  cur    = texture(s_Samples, vec2(float(i) / float(SAMPLES_TEXTURE_SIZE), 0.0)).rgb;
-        vec2  offset = cur.xy;
-        float weight = cur.z;
-
-        vec2 tex_coord = light_coord.xy + offset * u_SampleRadius * texel_size;
+        vec3 offset = texelFetch(s_Samples, ivec2(i, 0), 0).rgb;
+        vec2 tex_coord = light_coord.xy + offset.xy * u_SampleRadius * texel_size;
 
         vec3 vpl_pos    = texture(s_RSMWorldPos, tex_coord).rgb;
         vec3 vpl_normal = texture(s_RSMNormals, tex_coord).rgb;
         vec3 vpl_flux   = texture(s_RSMFlux, tex_coord).rgb;
 
-        // RSM Pos -> Frag Pos
-        vec3 L = normalize(P - vpl_pos);
+        vec3 result = vpl_flux * ((max(0.0, dot(vpl_normal, (P - vpl_pos))) * max(0.0, dot(N, (vpl_pos - P)))) / pow(length(P - vpl_pos), 4.0));
 
-        vec3 result = vpl_flux * max(0.0, dot(vpl_normal, L)) * max(0.0, dot(N, -L));
-
-        result *= weight * weight;
-        result *= (1.0 / float(u_NumSamples));
+        result *= offset.z * offset.z;
 
         indirect += result;
     }
