@@ -80,12 +80,6 @@ protected:
 
         if (m_rsm_enabled || m_indirect_only)
             indirect_lighting();
-
-        //        if (m_debug_mode)
-        //            m_debug_draw.frustum(m_flythrough_camera->projection * m_flythrough_camera->view, glm::vec3(0.0f, 1.0f, 0.0f));
-        //
-        //        // Render debug draw.
-        //        m_debug_draw.render(nullptr, m_width, m_height, m_global_uniforms.projection * m_global_uniforms.view);
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -506,7 +500,10 @@ private:
     void ui()
     {
         ImGui::Checkbox("Indirect Lighting", &m_rsm_enabled);
-        ImGui::Checkbox("Indirect Only", &m_indirect_only);
+        
+        if (m_rsm_enabled)
+            ImGui::Checkbox("Indirect Only", &m_indirect_only);
+        
         ImGui::Checkbox("Use as Flashlight", &m_flash_light);
 
         if (!m_flash_light)
@@ -752,7 +749,7 @@ private:
     bool      m_flash_light = false;
 
     // RSM
-    bool                           m_rsm_enabled           = false;
+    bool                           m_rsm_enabled           = true;
     bool                           m_indirect_only         = false;
     int                            m_num_samples           = 64;
     float                          m_indirect_light_amount = 0.1f;
