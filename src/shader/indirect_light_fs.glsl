@@ -63,7 +63,7 @@ void main(void)
 
     for (int i = 0; i < u_NumSamples; i++)
     {
-        vec3 offset = texelFetch(s_Samples, ivec2(i, 0), 0).rgb;
+        vec3 offset    = texelFetch(s_Samples, ivec2(i, 0), 0).rgb;
         vec2 tex_coord = light_coord.xy + offset.xy * u_SampleRadius * texel_size;
 
         vec3 vpl_pos    = texture(s_RSMWorldPos, tex_coord).rgb;
