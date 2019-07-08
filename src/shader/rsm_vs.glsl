@@ -40,7 +40,7 @@ void main()
 {
     vec4 world_pos = model * vec4(VS_IN_Position, 1.0);
     FS_IN_WorldPos = world_pos.xyz;
-    FS_IN_Normal   = mat3(model) * VS_IN_Normal;
+    FS_IN_Normal   = normalize(mat3(model) * VS_IN_Normal);
     FS_IN_TexCoord = VS_IN_TexCoord;
     gl_Position    = light_view_proj * world_pos;
 }

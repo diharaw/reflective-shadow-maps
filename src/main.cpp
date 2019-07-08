@@ -10,7 +10,7 @@
 
 #define CAMERA_FAR_PLANE 1000.0f
 #define RSM_SIZE 1024
-#define SAMPLES_TEXTURE_SIZE 64
+#define SAMPLES_TEXTURE_SIZE 512
 
 // Uniform buffer data structure.
 struct ObjectUniforms
@@ -751,8 +751,8 @@ private:
     // RSM
     bool                           m_rsm_enabled           = true;
     bool                           m_indirect_only         = false;
-    int                            m_num_samples           = 64;
-    float                          m_indirect_light_amount = 0.1f;
+    int                            m_num_samples           = 128;
+    float                          m_indirect_light_amount = 1.0f;
     float                          m_sample_radius         = 300.0f;
     std::unique_ptr<dw::Texture2D> m_samples_texture;
 
