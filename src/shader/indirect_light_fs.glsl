@@ -45,7 +45,7 @@ uniform int   u_NumSamples;
 void main(void)
 {
     vec3 P = texture(s_WorldPos, FS_IN_TexCoord).rgb;
-    vec3 N = texture(s_Normals, FS_IN_TexCoord).rgb;
+    vec3 N = normalize(texture(s_Normals, FS_IN_TexCoord).rgb);
 
     // Project fragment position into light's coordinate space.
     vec4 light_coord = light_view_proj * vec4(P, 1.0);
@@ -66,13 +66,15 @@ void main(void)
         vec2 tex_coord = light_coord.xy + offset.xy * u_SampleRadius * texel_size;
 
         vec3 vpl_pos    = texture(s_RSMWorldPos, tex_coord).rgb;
-        vec3 vpl_normal = texture(s_RSMNormals, tex_coord).rgb;
+        vec3 vpl_normal = normalize(texture(s_RSMNormals, tex_coord).rgb);
         vec3 vpl_flux   = texture(s_RSMFlux, tex_coord).rgb;
 
         vec3 result = vpl_flux * ((max(0.0, dot(vpl_normal, (P - vpl_pos))) * max(0.0, dot(N, (vpl_pos - P)))) / pow(length(P - vpl_pos), 4.0));
 
         result *= offset.z * offset.z;
 
+        // Uncomment following line for debugging.
+        // indirect += vec3(((max(0.0, dot(vpl_normal, normalize(P - vpl_pos))) * max(0.0, dot(N, normalize(vpl_pos - P))))));
         indirect += result;
     }
 
