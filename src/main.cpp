@@ -482,7 +482,7 @@ private:
             m_samples_texture->bind(5);
 
         m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
-        m_indirect_program->set_uniform("u_SampleRadius", m_sample_radius);
+        m_indirect_program->set_uniform("u_SampleRadius", m_sample_radius * (1.0f / float(RSM_SIZE)));
         m_indirect_program->set_uniform("u_IndirectLightAmount", m_indirect_light_amount);
 
         // Bind uniform buffers.

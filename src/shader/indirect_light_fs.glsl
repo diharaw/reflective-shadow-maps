@@ -33,12 +33,6 @@ uniform float u_IndirectLightAmount;
 uniform int   u_NumSamples;
 
 // ------------------------------------------------------------------
-// DEFINES  ---------------------------------------------------------
-// ------------------------------------------------------------------
-
-#define RSM_SIZE 1024.0
-
-// ------------------------------------------------------------------
 // MAIN  ------------------------------------------------------------
 // ------------------------------------------------------------------
 
@@ -56,14 +50,12 @@ void main(void)
     // Remap to [0.0 - 1.0] range.
     light_coord = light_coord * 0.5 + 0.5;
 
-    float texel_size = 1.0 / RSM_SIZE;
-
     vec3 indirect = vec3(0.0);
 
     for (int i = 0; i < u_NumSamples; i++)
     {
         vec3 offset    = texelFetch(s_Samples, ivec2(i, 0), 0).rgb;
-        vec2 tex_coord = light_coord.xy + offset.xy * u_SampleRadius * texel_size;
+        vec2 tex_coord = light_coord.xy + offset.xy * u_SampleRadius;
 
         vec3 vpl_pos    = texture(s_RSMWorldPos, tex_coord).rgb;
         vec3 vpl_normal = normalize(texture(s_RSMNormals, tex_coord).rgb);
