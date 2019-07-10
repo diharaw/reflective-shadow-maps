@@ -257,7 +257,6 @@ private:
                 }
 
                 m_direct_program->uniform_block_binding("GlobalUniforms", 0);
-                m_direct_program->uniform_block_binding("ObjectUniforms", 1);
             }
 
             {
@@ -278,7 +277,6 @@ private:
                 }
 
                 m_indirect_program->uniform_block_binding("GlobalUniforms", 0);
-                m_indirect_program->uniform_block_binding("ObjectUniforms", 1);
             }
 
             {
@@ -452,7 +450,6 @@ private:
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE);
 
-        //        m_direct_light_fbo->bind();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glViewport(0, 0, m_width, m_height);
@@ -500,10 +497,10 @@ private:
     void ui()
     {
         ImGui::Checkbox("Indirect Lighting", &m_rsm_enabled);
-        
+
         if (m_rsm_enabled)
             ImGui::Checkbox("Indirect Only", &m_indirect_only);
-        
+
         ImGui::Checkbox("Use as Flashlight", &m_flash_light);
 
         if (!m_flash_light)
