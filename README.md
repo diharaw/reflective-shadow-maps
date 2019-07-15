@@ -2,6 +2,8 @@
 
 An OpenGL sample implementation of Reflective Shadow Maps for spot lights. 
 
+![ReflectiveShadowMaps](data/screenshot.jpg)
+
 ## Dependencies
 * [dwSampleFramework](https://github.com/diharaw/dwSampleFramework) 
 
