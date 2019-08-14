@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 set(RSM_SOURCES ${PROJECT_SOURCE_DIR}/src/main.cpp)
-set(ASSET_SOURCES ${PROJECT_SOURCE_DIR}/data/cornell_box.obj
-                  ${PROJECT_SOURCE_DIR}/data/cornell_box.mtl)
+set(ASSET_SOURCES ${PROJECT_SOURCE_DIR}/data/mesh/cornell_box.obj
+                  ${PROJECT_SOURCE_DIR}/data/mesh/cornell_box.mtl)
 
 file(GLOB_RECURSE SHADER_SOURCES ${PROJECT_SOURCE_DIR}/src/*.glsl)
 
@@ -24,9 +24,11 @@ target_link_libraries(ReflectiveShadowMaps dwSampleFramework)
 
 if (NOT APPLE)
     add_custom_command(TARGET ReflectiveShadowMaps POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/shader $<TARGET_FILE_DIR:ReflectiveShadowMaps>/shader)
-    add_custom_command(TARGET ReflectiveShadowMaps POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data $<TARGET_FILE_DIR:ReflectiveShadowMaps>)
+    add_custom_command(TARGET ReflectiveShadowMaps POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data/mesh $<TARGET_FILE_DIR:ReflectiveShadowMaps>/mesh)
 endif()
 
 if(CLANG_FORMAT_EXE)
     add_custom_target(clang-format-project-files COMMAND ${CLANG_FORMAT_EXE} -i -style=file ${RSM_SOURCES} ${SHADER_SOURCES})
 endif()
+
+set_property(TARGET ReflectiveShadowMaps PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/$(Configuration)")

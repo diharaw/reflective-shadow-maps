@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <application.h>
 #include <mesh.h>
 #include <camera.h>
@@ -545,7 +546,7 @@ private:
 
     bool load_scene()
     {
-        dw::Mesh* sponza = dw::Mesh::load("cornell_box.obj");
+        dw::Mesh* sponza = dw::Mesh::load("mesh/cornell_box.obj");
 
         if (!sponza)
         {
