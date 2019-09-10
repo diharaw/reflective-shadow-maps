@@ -11,7 +11,7 @@
 
 #define CAMERA_FAR_PLANE 1000.0f
 #define RSM_SIZE 1024
-#define SAMPLES_TEXTURE_SIZE 512
+#define SAMPLES_TEXTURE_SIZE 64
 
 // Uniform buffer data structure.
 struct ObjectUniforms
@@ -71,7 +71,8 @@ protected:
         update_global_uniforms(m_global_uniforms);
         update_object_uniforms(m_object_transforms);
 
-        ui();
+		if (m_debug_gui)
+			ui();
 
         render_rsm();
         render_gbuffer();
@@ -121,6 +122,9 @@ protected:
 
         if (code == GLFW_KEY_SPACE)
             m_mouse_look = true;
+
+		if (code == GLFW_KEY_G)
+            m_debug_gui = !m_debug_gui;
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -749,9 +753,9 @@ private:
     // RSM
     bool                           m_rsm_enabled           = true;
     bool                           m_indirect_only         = false;
-    int                            m_num_samples           = 128;
-    float                          m_indirect_light_amount = 1.0f;
-    float                          m_sample_radius         = 300.0f;
+    int                            m_num_samples           = 64;
+    float                          m_indirect_light_amount = 0.3f;
+    float                          m_sample_radius         = 1.0f;
     std::unique_ptr<dw::Texture2D> m_samples_texture;
 
     // Uniforms.
@@ -767,6 +771,7 @@ private:
     float m_sideways_speed     = 0.0f;
     float m_camera_sensitivity = 0.05f;
     float m_camera_speed       = 0.02f;
+    bool  m_debug_gui          = true;
 
     // Camera orientation.
     float m_camera_x;
