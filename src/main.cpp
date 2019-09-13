@@ -11,7 +11,7 @@
 
 #define CAMERA_FAR_PLANE 1000.0f
 #define RSM_SIZE 1024
-#define SAMPLES_TEXTURE_SIZE 64
+#define SAMPLES_TEXTURE_SIZE 256
 
 // Uniform buffer data structure.
 struct ObjectUniforms
@@ -50,6 +50,7 @@ protected:
 
         create_framebuffers();
         create_samples_texture();
+        create_dither_texture();
         create_spot_light();
 
         // Create camera.
@@ -174,8 +175,8 @@ protected:
         settings.maximized    = false;
         settings.refresh_rate = 60;
         settings.major_ver    = 4;
-        settings.width        = 1280;
-        settings.height       = 720;
+        settings.width        = 1920;
+        settings.height       = 1080;
         settings.title        = "Reflective Shadow Maps (c) 2019 Dihara Wijetunga";
 
         return settings;
@@ -349,10 +350,15 @@ private:
         m_gbuffer_world_pos_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
         m_gbuffer_depth_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 
-        m_rsm_flux_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-        m_rsm_normals_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-        m_rsm_world_pos_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
-        m_rsm_depth_rt->set_wrapping(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
+        m_rsm_flux_rt->set_wrapping(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+        m_rsm_normals_rt->set_wrapping(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+        m_rsm_world_pos_rt->set_wrapping(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+        m_rsm_depth_rt->set_wrapping(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+
+		m_rsm_flux_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
+        m_rsm_normals_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
+		m_rsm_world_pos_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
+        m_rsm_depth_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
 
         m_direct_light_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 
@@ -371,6 +377,121 @@ private:
         m_direct_light_fbo = std::make_unique<dw::Framebuffer>();
         m_direct_light_fbo->attach_render_target(0, m_direct_light_rt.get(), 0, 0);
     }
+
+	void create_dither_texture()
+	{
+		std::vector<uint8_t> dither;
+
+#ifdef DITHER_8_8
+		int i           = 0;
+		int dither_size = 8;
+		
+		dither.resize(dither_size * dither_size);
+		
+		dither[i++] = (1.0f / 65.0f * 255);
+		dither[i++] = (49.0f / 65.0f * 255);
+		dither[i++] = (13.0f / 65.0f * 255);
+		dither[i++] = (61.0f / 65.0f * 255);
+		dither[i++] = (4.0f / 65.0f * 255);
+		dither[i++] = (52.0f / 65.0f * 255);
+		dither[i++] = (16.0f / 65.0f * 255);
+		dither[i++] = (64.0f / 65.0f * 255);
+		
+		dither[i++] = (33.0f / 65.0f * 255);
+		dither[i++] = (17.0f / 65.0f * 255);
+		dither[i++] = (45.0f / 65.0f * 255);
+		dither[i++] = (29.0f / 65.0f * 255);
+		dither[i++] = (36.0f / 65.0f * 255);
+		dither[i++] = (20.0f / 65.0f * 255);
+		dither[i++] = (48.0f / 65.0f * 255);
+		dither[i++] = (32.0f / 65.0f * 255);
+		
+		dither[i++] = (9.0f / 65.0f * 255);
+		dither[i++] = (57.0f / 65.0f * 255);
+		dither[i++] = (5.0f / 65.0f * 255);
+		dither[i++] = (53.0f / 65.0f * 255);
+		dither[i++] = (12.0f / 65.0f * 255);
+		dither[i++] = (60.0f / 65.0f * 255);
+		dither[i++] = (8.0f / 65.0f * 255);
+		dither[i++] = (56.0f / 65.0f * 255);
+		
+		dither[i++] = (41.0f / 65.0f * 255);
+		dither[i++] = (25.0f / 65.0f * 255);
+		dither[i++] = (37.0f / 65.0f * 255);
+		dither[i++] = (21.0f / 65.0f * 255);
+		dither[i++] = (44.0f / 65.0f * 255);
+		dither[i++] = (28.0f / 65.0f * 255);
+		dither[i++] = (40.0f / 65.0f * 255);
+		dither[i++] = (24.0f / 65.0f * 255);
+		
+		dither[i++] = (3.0f / 65.0f * 255);
+		dither[i++] = (51.0f / 65.0f * 255);
+		dither[i++] = (15.0f / 65.0f * 255);
+		dither[i++] = (63.0f / 65.0f * 255);
+		dither[i++] = (2.0f / 65.0f * 255);
+		dither[i++] = (50.0f / 65.0f * 255);
+		dither[i++] = (14.0f / 65.0f * 255);
+		dither[i++] = (62.0f / 65.0f * 255);
+		
+		dither[i++] = (35.0f / 65.0f * 255);
+		dither[i++] = (19.0f / 65.0f * 255);
+		dither[i++] = (47.0f / 65.0f * 255);
+		dither[i++] = (31.0f / 65.0f * 255);
+		dither[i++] = (34.0f / 65.0f * 255);
+		dither[i++] = (18.0f / 65.0f * 255);
+		dither[i++] = (46.0f / 65.0f * 255);
+		dither[i++] = (30.0f / 65.0f * 255);
+		
+		dither[i++] = (11.0f / 65.0f * 255);
+		dither[i++] = (59.0f / 65.0f * 255);
+		dither[i++] = (7.0f / 65.0f * 255);
+		dither[i++] = (55.0f / 65.0f * 255);
+		dither[i++] = (10.0f / 65.0f * 255);
+		dither[i++] = (58.0f / 65.0f * 255);
+		dither[i++] = (6.0f / 65.0f * 255);
+		dither[i++] = (54.0f / 65.0f * 255);
+		
+		dither[i++] = (43.0f / 65.0f * 255);
+		dither[i++] = (27.0f / 65.0f * 255);
+		dither[i++] = (39.0f / 65.0f * 255);
+		dither[i++] = (23.0f / 65.0f * 255);
+		dither[i++] = (42.0f / 65.0f * 255);
+		dither[i++] = (26.0f / 65.0f * 255);
+		dither[i++] = (38.0f / 65.0f * 255);
+		dither[i++] = (22.0f / 65.0f * 255);
+#else
+		int i           = 0;
+		int dither_size = 4;
+		
+		dither.resize(dither_size * dither_size);
+		
+		dither[i++] = (0.0f / 16.0f * 255);
+		dither[i++] = (8.0f / 16.0f * 255);
+		dither[i++] = (2.0f / 16.0f * 255);
+		dither[i++] = (10.0f / 16.0f * 255);
+		
+		dither[i++] = (12.0f / 16.0f * 255);
+		dither[i++] = (4.0f / 16.0f * 255);
+		dither[i++] = (14.0f / 16.0f * 255);
+		dither[i++] = (6.0f / 16.0f * 255);
+		
+		dither[i++] = (3.0f / 16.0f * 255);
+		dither[i++] = (11.0f / 16.0f * 255);
+		dither[i++] = (1.0f / 16.0f * 255);
+		dither[i++] = (9.0f / 16.0f * 255);
+		
+		dither[i++] = (15.0f / 16.0f * 255);
+		dither[i++] = (7.0f / 16.0f * 255);
+		dither[i++] = (13.0f / 16.0f * 255);
+		dither[i++] = (5.0f / 16.0f * 255);
+#endif
+
+		m_dither_texture = std::make_unique<dw::Texture2D>(dither_size, dither_size, 1, 1, 1, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+		m_dither_texture->set_min_filter(GL_NEAREST);
+		m_dither_texture->set_mag_filter(GL_NEAREST);
+		m_dither_texture->set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
+		m_dither_texture->set_data(0, 0, dither.data());
+	}
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -486,6 +607,10 @@ private:
         if (m_indirect_program->set_uniform("s_Samples", 5))
             m_samples_texture->bind(5);
 
+		if (m_indirect_program->set_uniform("s_Dither", 6))
+            m_dither_texture->bind(6);
+
+		m_indirect_program->set_uniform("u_Dither", m_enable_dither ? 1 : 0);
         m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
         m_indirect_program->set_uniform("u_SampleRadius", m_sample_radius * (1.0f / float(RSM_SIZE)));
         m_indirect_program->set_uniform("u_IndirectLightAmount", m_indirect_light_amount);
@@ -514,6 +639,7 @@ private:
             ImGui::InputFloat3("Light Target", &m_light_target.x);
         }
 
+		ImGui::Checkbox("Dither", &m_enable_dither);
         ImGui::InputInt("Num RSM Samples", &m_num_samples);
         ImGui::InputFloat("Sample Radius", &m_sample_radius);
         ImGui::InputFloat("Indirect Light Amount", &m_indirect_light_amount);
@@ -725,6 +851,7 @@ private:
     std::unique_ptr<dw::Texture2D> m_rsm_world_pos_rt;
     std::unique_ptr<dw::Texture2D> m_rsm_depth_rt;
     std::unique_ptr<dw::Texture2D> m_direct_light_rt;
+    std::unique_ptr<dw::Texture2D> m_dither_texture;
 
     std::unique_ptr<dw::Framebuffer> m_gbuffer_fbo;
     std::unique_ptr<dw::Framebuffer> m_rsm_fbo;
@@ -753,9 +880,9 @@ private:
     // RSM
     bool                           m_rsm_enabled           = true;
     bool                           m_indirect_only         = false;
-    int                            m_num_samples           = 64;
-    float                          m_indirect_light_amount = 0.3f;
-    float                          m_sample_radius         = 1.0f;
+    int                            m_num_samples           = SAMPLES_TEXTURE_SIZE;
+    float                          m_indirect_light_amount = 1.0f;
+    float                          m_sample_radius         = 500.0f;
     std::unique_ptr<dw::Texture2D> m_samples_texture;
 
     // Uniforms.
@@ -771,6 +898,7 @@ private:
     float m_sideways_speed     = 0.0f;
     float m_camera_sensitivity = 0.05f;
     float m_camera_speed       = 0.02f;
+    bool  m_enable_dither      = true;
     bool  m_debug_gui          = true;
 
     // Camera orientation.

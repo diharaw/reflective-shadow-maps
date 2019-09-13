@@ -27,10 +27,12 @@ uniform sampler2D s_RSMFlux;
 uniform sampler2D s_RSMNormals;
 uniform sampler2D s_RSMWorldPos;
 uniform sampler2D s_Samples;
+uniform sampler2D s_Dither;
 
 uniform float u_SampleRadius;
 uniform float u_IndirectLightAmount;
 uniform int   u_NumSamples;
+uniform int   u_Dither;
 
 // ------------------------------------------------------------------
 // MAIN  ------------------------------------------------------------
@@ -52,10 +54,21 @@ void main(void)
 
     vec3 indirect = vec3(0.0);
 
+#ifdef DITHER_8_8
+    vec2 interleaved_pos = (mod(floor(gl_FragCoord.xy), 8.0));
+    float dither_offset = texture(s_Dither, interleaved_pos / 8.0 + vec2(0.5 / 8.0, 0.5 / 8.0)).r;
+#else
+    vec2 interleaved_pos = (mod(floor(gl_FragCoord.xy), 4.0));
+    float dither_offset = texture(s_Dither, interleaved_pos / 4.0 + vec2(0.5 / 4.0, 0.5 / 4.0)).r;	
+#endif
+
+    if (u_Dither == 0)
+        dither_offset = 0.0;
+
     for (int i = 0; i < u_NumSamples; i++)
     {
         vec3 offset    = texelFetch(s_Samples, ivec2(i, 0), 0).rgb;
-        vec2 tex_coord = light_coord.xy + offset.xy * u_SampleRadius;
+        vec2 tex_coord = light_coord.xy + offset.xy * u_SampleRadius + (((offset.xy * u_SampleRadius) / 2.0) * dither_offset);
 
         vec3 vpl_pos    = texture(s_RSMWorldPos, tex_coord).rgb;
         vec3 vpl_normal = normalize(texture(s_RSMNormals, tex_coord).rgb);
