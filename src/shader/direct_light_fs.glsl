@@ -86,7 +86,7 @@ void main(void)
     vec3 L        = normalize(u_LightPos - frag_pos); // FragPos -> LightPos vector
 
     float theta       = dot(L, normalize(-u_LightDirection));
-    float distance    = length(u_LightPos - u_LightPos);
+    float distance    = length(frag_pos - u_LightPos);
     float epsilon     = u_LightInnerCutoff - u_LightOuterCutoff;
     float attenuation = smoothstep(u_LightRange, 0, distance) * clamp((theta - u_LightOuterCutoff) / epsilon, 0.0, 1.0) * spot_light_shadows(frag_pos);
 

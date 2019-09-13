@@ -190,7 +190,7 @@ private:
         m_inner_cutoff    = 10.0f;
         m_outer_cutoff    = 15.0f;
         m_light_intensity = 1.0f;
-        m_light_range     = 5.0f;
+        m_light_range     = 100.0f;
         m_light_bias      = 0.001f;
         m_light_color     = glm::vec3(1.0f, 1.0f, 1.0f);
         m_light_pos       = glm::vec3(0.0f, 7.0f, 30.0f);
@@ -614,6 +614,11 @@ private:
         m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
         m_indirect_program->set_uniform("u_SampleRadius", m_sample_radius * (1.0f / float(RSM_SIZE)));
         m_indirect_program->set_uniform("u_IndirectLightAmount", m_indirect_light_amount);
+        m_indirect_program->set_uniform("u_LightPos", m_flash_light ? m_main_camera->m_position : m_light_pos);
+        m_indirect_program->set_uniform("u_LightDirection", m_flash_light ? m_main_camera->m_forward : m_light_dir);
+        m_indirect_program->set_uniform("u_LightInnerCutoff", cosf(glm::radians(m_inner_cutoff)));
+        m_indirect_program->set_uniform("u_LightOuterCutoff", cosf(glm::radians(m_outer_cutoff)));
+        m_indirect_program->set_uniform("u_LightRange", m_light_range);
 
         // Bind uniform buffers.
         m_global_ubo->bind_base(0);

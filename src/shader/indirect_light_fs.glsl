@@ -33,6 +33,23 @@ uniform float u_SampleRadius;
 uniform float u_IndirectLightAmount;
 uniform int   u_NumSamples;
 uniform int   u_Dither;
+uniform vec3  u_LightPos;
+uniform vec3  u_LightDirection;
+uniform float u_LightInnerCutoff;
+uniform float u_LightOuterCutoff;
+uniform float u_LightRange;
+
+// ------------------------------------------------------------------
+
+float light_attenuation(vec3 frag_pos)
+{
+    vec3 L = normalize(u_LightPos - frag_pos); // FragPos -> LightPos vector
+    float theta       = dot(L, normalize(-u_LightDirection));
+    float distance    = length(frag_pos - u_LightPos);
+    float epsilon     = u_LightInnerCutoff - u_LightOuterCutoff;
+    
+    return smoothstep(u_LightRange, 0, distance) * clamp((theta - u_LightOuterCutoff) / epsilon, 0.0, 1.0);
+}
 
 // ------------------------------------------------------------------
 // MAIN  ------------------------------------------------------------
@@ -42,6 +59,7 @@ void main(void)
 {
     vec3 P = texture(s_WorldPos, FS_IN_TexCoord).rgb;
     vec3 N = normalize(texture(s_Normals, FS_IN_TexCoord).rgb);
+    
 
     // Project fragment position into light's coordinate space.
     vec4 light_coord = light_view_proj * vec4(P, 1.0);
@@ -74,7 +92,7 @@ void main(void)
         vec3 vpl_normal = normalize(texture(s_RSMNormals, tex_coord).rgb);
         vec3 vpl_flux   = texture(s_RSMFlux, tex_coord).rgb;
 
-        vec3 result = vpl_flux * ((max(0.0, dot(vpl_normal, (P - vpl_pos))) * max(0.0, dot(N, (vpl_pos - P)))) / pow(length(P - vpl_pos), 4.0));
+        vec3 result = light_attenuation(vpl_pos) * vpl_flux * ((max(0.0, dot(vpl_normal, (P - vpl_pos))) * max(0.0, dot(N, (vpl_pos - P)))) / pow(length(P - vpl_pos), 4.0));
 
         result *= offset.z * offset.z;
 
