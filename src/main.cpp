@@ -12,6 +12,7 @@
 #define CAMERA_FAR_PLANE 1000.0f
 #define RSM_SIZE 1024
 #define SAMPLES_TEXTURE_SIZE 64
+#define SCALED_INDIRECT 0.5f
 
 // Uniform buffer data structure.
 struct ObjectUniforms
@@ -81,8 +82,11 @@ protected:
         if (!m_indirect_only)
             direct_lighting();
 
-        if (m_rsm_enabled || m_indirect_only)
-            indirect_lighting();
+		if (m_rsm_enabled || m_indirect_only)
+		{
+			indirect_lighting();
+			copy_indirect();
+		}
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -241,6 +245,7 @@ private:
             m_fullscreen_triangle_vs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/fullscreen_triangle_vs.glsl"));
             m_direct_fs              = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/direct_light_fs.glsl"));
             m_indirect_fs            = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/indirect_light_fs.glsl"));
+            m_copy_fs				 = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/copy_fs.glsl"));
             m_rsm_vs                 = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/rsm_vs.glsl"));
             m_gbuffer_vs             = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/gbuffer_vs.glsl"));
             m_gbuffer_fs             = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/gbuffer_fs.glsl"));
@@ -283,6 +288,26 @@ private:
                 }
 
                 m_indirect_program->uniform_block_binding("GlobalUniforms", 0);
+            }
+
+			{
+                if (!m_fullscreen_triangle_vs || !m_copy_fs)
+                {
+                    DW_LOG_FATAL("Failed to create Shaders");
+                    return false;
+                }
+
+                // Create general shader program
+                dw::Shader* shaders[] = { m_fullscreen_triangle_vs.get(), m_copy_fs.get() };
+                m_copy_program    = std::make_unique<dw::Program>(2, shaders);
+
+                if (!m_copy_program)
+                {
+                    DW_LOG_FATAL("Failed to create Shader Program");
+                    return false;
+                }
+
+                m_copy_program->uniform_block_binding("GlobalUniforms", 0);
             }
 
             {
@@ -361,6 +386,8 @@ private:
         m_rsm_depth_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
 
         m_direct_light_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_indirect_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_scaled_indirect_rt = std::make_unique<dw::Texture2D>(m_width * SCALED_INDIRECT, m_height * SCALED_INDIRECT, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 
         m_gbuffer_fbo = std::make_unique<dw::Framebuffer>();
 
@@ -376,6 +403,12 @@ private:
 
         m_direct_light_fbo = std::make_unique<dw::Framebuffer>();
         m_direct_light_fbo->attach_render_target(0, m_direct_light_rt.get(), 0, 0);
+
+		m_indirect_fbo = std::make_unique<dw::Framebuffer>();
+        m_indirect_fbo->attach_render_target(0, m_indirect_rt.get(), 0, 0);
+
+		m_scaled_indirect_fbo = std::make_unique<dw::Framebuffer>();
+        m_scaled_indirect_fbo->attach_render_target(0, m_scaled_indirect_rt.get(), 0, 0);
     }
 
 	void create_dither_texture()
@@ -573,18 +606,21 @@ private:
     {
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
+        glDisable(GL_BLEND);
+     
+		if (m_screenspace_interpolation)
+		{
+			m_scaled_indirect_fbo->bind();
+			glViewport(0, 0, m_width * SCALED_INDIRECT, m_height * SCALED_INDIRECT);
+		}
+		else
+		{
+			m_indirect_fbo->bind();
+			glViewport(0, 0, m_width, m_height);
+		}
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        glViewport(0, 0, m_width, m_height);
-
-        if (m_indirect_only)
-        {
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         // Bind shader program.
         m_indirect_program->use();
@@ -629,6 +665,40 @@ private:
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
+	void copy_indirect()
+	{
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
+		glViewport(0, 0, m_width, m_height);
+
+		if (m_indirect_only)
+		{
+		    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		    glClear(GL_COLOR_BUFFER_BIT);
+		}
+
+		 // Bind shader program.
+		m_copy_program->use();
+		
+		if (m_copy_program->set_uniform("s_Color", 0))
+		{
+			if (m_screenspace_interpolation)
+				m_scaled_indirect_rt->bind(0);
+			else
+				m_indirect_rt->bind(0);
+		}
+
+		// Render fullscreen triangle
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
+    // -----------------------------------------------------------------------------------------------------------------------------------
+
     void ui()
     {
         ImGui::Checkbox("Indirect Lighting", &m_rsm_enabled);
@@ -645,6 +715,7 @@ private:
         }
 
 		ImGui::Checkbox("Dither", &m_enable_dither);
+        ImGui::Checkbox("Screen Space Interpolation", &m_screenspace_interpolation);
         ImGui::InputInt("Num RSM Samples", &m_num_samples);
         ImGui::InputFloat("Sample Radius", &m_sample_radius);
         ImGui::InputFloat("Indirect Light Amount", &m_indirect_light_amount);
@@ -838,6 +909,7 @@ private:
     std::unique_ptr<dw::Shader> m_fullscreen_triangle_vs;
     std::unique_ptr<dw::Shader> m_direct_fs;
     std::unique_ptr<dw::Shader> m_indirect_fs;
+    std::unique_ptr<dw::Shader> m_copy_fs;
     std::unique_ptr<dw::Shader> m_rsm_vs;
     std::unique_ptr<dw::Shader> m_gbuffer_vs;
     std::unique_ptr<dw::Shader> m_gbuffer_fs;
@@ -846,6 +918,7 @@ private:
     std::unique_ptr<dw::Program> m_rsm_program;
     std::unique_ptr<dw::Program> m_gbuffer_program;
     std::unique_ptr<dw::Program> m_direct_program;
+    std::unique_ptr<dw::Program> m_copy_program;
 
     std::unique_ptr<dw::Texture2D> m_gbuffer_albedo_rt;
     std::unique_ptr<dw::Texture2D> m_gbuffer_normals_rt;
@@ -857,10 +930,14 @@ private:
     std::unique_ptr<dw::Texture2D> m_rsm_depth_rt;
     std::unique_ptr<dw::Texture2D> m_direct_light_rt;
     std::unique_ptr<dw::Texture2D> m_dither_texture;
+    std::unique_ptr<dw::Texture2D> m_indirect_rt;
+    std::unique_ptr<dw::Texture2D> m_scaled_indirect_rt;
 
     std::unique_ptr<dw::Framebuffer> m_gbuffer_fbo;
     std::unique_ptr<dw::Framebuffer> m_rsm_fbo;
     std::unique_ptr<dw::Framebuffer> m_direct_light_fbo;
+    std::unique_ptr<dw::Framebuffer> m_indirect_fbo;
+    std::unique_ptr<dw::Framebuffer> m_scaled_indirect_fbo;
 
     std::unique_ptr<dw::UniformBuffer> m_object_ubo;
     std::unique_ptr<dw::UniformBuffer> m_global_ubo;
@@ -885,6 +962,7 @@ private:
     // RSM
     bool                           m_rsm_enabled           = true;
     bool                           m_indirect_only         = false;
+    bool                           m_screenspace_interpolation = true;
     int                            m_num_samples           = SAMPLES_TEXTURE_SIZE;
     float                          m_indirect_light_amount = 3.0f;
     float                          m_sample_radius         = 500.0f;
