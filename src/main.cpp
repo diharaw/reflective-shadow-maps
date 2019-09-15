@@ -73,8 +73,8 @@ protected:
         update_global_uniforms(m_global_uniforms);
         update_object_uniforms(m_object_transforms);
 
-		if (m_debug_gui)
-			ui();
+        if (m_debug_gui)
+            ui();
 
         render_rsm();
         render_gbuffer();
@@ -82,11 +82,11 @@ protected:
         if (!m_indirect_only)
             direct_lighting();
 
-		if (m_rsm_enabled || m_indirect_only)
-		{
-			indirect_lighting();
-			copy_indirect();
-		}
+        if (m_rsm_enabled || m_indirect_only)
+        {
+            indirect_lighting();
+            copy_indirect();
+        }
     }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ protected:
         if (code == GLFW_KEY_SPACE)
             m_mouse_look = true;
 
-		if (code == GLFW_KEY_G)
+        if (code == GLFW_KEY_G)
             m_debug_gui = !m_debug_gui;
     }
 
@@ -245,7 +245,7 @@ private:
             m_fullscreen_triangle_vs = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/fullscreen_triangle_vs.glsl"));
             m_direct_fs              = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/direct_light_fs.glsl"));
             m_indirect_fs            = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/indirect_light_fs.glsl"));
-            m_copy_fs				 = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/copy_fs.glsl"));
+            m_copy_fs                = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/copy_fs.glsl"));
             m_rsm_vs                 = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/rsm_vs.glsl"));
             m_gbuffer_vs             = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_VERTEX_SHADER, "shader/gbuffer_vs.glsl"));
             m_gbuffer_fs             = std::unique_ptr<dw::Shader>(dw::Shader::create_from_file(GL_FRAGMENT_SHADER, "shader/gbuffer_fs.glsl"));
@@ -290,7 +290,7 @@ private:
                 m_indirect_program->uniform_block_binding("GlobalUniforms", 0);
             }
 
-			{
+            {
                 if (!m_fullscreen_triangle_vs || !m_copy_fs)
                 {
                     DW_LOG_FATAL("Failed to create Shaders");
@@ -299,7 +299,7 @@ private:
 
                 // Create general shader program
                 dw::Shader* shaders[] = { m_fullscreen_triangle_vs.get(), m_copy_fs.get() };
-                m_copy_program    = std::make_unique<dw::Program>(2, shaders);
+                m_copy_program        = std::make_unique<dw::Program>(2, shaders);
 
                 if (!m_copy_program)
                 {
@@ -380,13 +380,13 @@ private:
         m_rsm_world_pos_rt->set_wrapping(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
         m_rsm_depth_rt->set_wrapping(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
 
-		m_rsm_flux_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
+        m_rsm_flux_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
         m_rsm_normals_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
-		m_rsm_world_pos_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
+        m_rsm_world_pos_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
         m_rsm_depth_rt->set_border_color(0.0f, 0.0f, 0.0f, 0.0f);
 
-        m_direct_light_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
-        m_indirect_rt = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_direct_light_rt    = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
+        m_indirect_rt        = std::make_unique<dw::Texture2D>(m_width, m_height, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
         m_scaled_indirect_rt = std::make_unique<dw::Texture2D>(m_width * SCALED_INDIRECT, m_height * SCALED_INDIRECT, 1, 1, 1, GL_RGB16F, GL_RGB, GL_HALF_FLOAT);
 
         m_gbuffer_fbo = std::make_unique<dw::Framebuffer>();
@@ -404,127 +404,127 @@ private:
         m_direct_light_fbo = std::make_unique<dw::Framebuffer>();
         m_direct_light_fbo->attach_render_target(0, m_direct_light_rt.get(), 0, 0);
 
-		m_indirect_fbo = std::make_unique<dw::Framebuffer>();
+        m_indirect_fbo = std::make_unique<dw::Framebuffer>();
         m_indirect_fbo->attach_render_target(0, m_indirect_rt.get(), 0, 0);
 
-		m_scaled_indirect_fbo = std::make_unique<dw::Framebuffer>();
+        m_scaled_indirect_fbo = std::make_unique<dw::Framebuffer>();
         m_scaled_indirect_fbo->attach_render_target(0, m_scaled_indirect_rt.get(), 0, 0);
     }
 
-	void create_dither_texture()
-	{
-		std::vector<uint8_t> dither;
+    void create_dither_texture()
+    {
+        std::vector<uint8_t> dither;
 
 #ifdef DITHER_8_8
-		int i           = 0;
-		int dither_size = 8;
-		
-		dither.resize(dither_size * dither_size);
-		
-		dither[i++] = (1.0f / 65.0f * 255);
-		dither[i++] = (49.0f / 65.0f * 255);
-		dither[i++] = (13.0f / 65.0f * 255);
-		dither[i++] = (61.0f / 65.0f * 255);
-		dither[i++] = (4.0f / 65.0f * 255);
-		dither[i++] = (52.0f / 65.0f * 255);
-		dither[i++] = (16.0f / 65.0f * 255);
-		dither[i++] = (64.0f / 65.0f * 255);
-		
-		dither[i++] = (33.0f / 65.0f * 255);
-		dither[i++] = (17.0f / 65.0f * 255);
-		dither[i++] = (45.0f / 65.0f * 255);
-		dither[i++] = (29.0f / 65.0f * 255);
-		dither[i++] = (36.0f / 65.0f * 255);
-		dither[i++] = (20.0f / 65.0f * 255);
-		dither[i++] = (48.0f / 65.0f * 255);
-		dither[i++] = (32.0f / 65.0f * 255);
-		
-		dither[i++] = (9.0f / 65.0f * 255);
-		dither[i++] = (57.0f / 65.0f * 255);
-		dither[i++] = (5.0f / 65.0f * 255);
-		dither[i++] = (53.0f / 65.0f * 255);
-		dither[i++] = (12.0f / 65.0f * 255);
-		dither[i++] = (60.0f / 65.0f * 255);
-		dither[i++] = (8.0f / 65.0f * 255);
-		dither[i++] = (56.0f / 65.0f * 255);
-		
-		dither[i++] = (41.0f / 65.0f * 255);
-		dither[i++] = (25.0f / 65.0f * 255);
-		dither[i++] = (37.0f / 65.0f * 255);
-		dither[i++] = (21.0f / 65.0f * 255);
-		dither[i++] = (44.0f / 65.0f * 255);
-		dither[i++] = (28.0f / 65.0f * 255);
-		dither[i++] = (40.0f / 65.0f * 255);
-		dither[i++] = (24.0f / 65.0f * 255);
-		
-		dither[i++] = (3.0f / 65.0f * 255);
-		dither[i++] = (51.0f / 65.0f * 255);
-		dither[i++] = (15.0f / 65.0f * 255);
-		dither[i++] = (63.0f / 65.0f * 255);
-		dither[i++] = (2.0f / 65.0f * 255);
-		dither[i++] = (50.0f / 65.0f * 255);
-		dither[i++] = (14.0f / 65.0f * 255);
-		dither[i++] = (62.0f / 65.0f * 255);
-		
-		dither[i++] = (35.0f / 65.0f * 255);
-		dither[i++] = (19.0f / 65.0f * 255);
-		dither[i++] = (47.0f / 65.0f * 255);
-		dither[i++] = (31.0f / 65.0f * 255);
-		dither[i++] = (34.0f / 65.0f * 255);
-		dither[i++] = (18.0f / 65.0f * 255);
-		dither[i++] = (46.0f / 65.0f * 255);
-		dither[i++] = (30.0f / 65.0f * 255);
-		
-		dither[i++] = (11.0f / 65.0f * 255);
-		dither[i++] = (59.0f / 65.0f * 255);
-		dither[i++] = (7.0f / 65.0f * 255);
-		dither[i++] = (55.0f / 65.0f * 255);
-		dither[i++] = (10.0f / 65.0f * 255);
-		dither[i++] = (58.0f / 65.0f * 255);
-		dither[i++] = (6.0f / 65.0f * 255);
-		dither[i++] = (54.0f / 65.0f * 255);
-		
-		dither[i++] = (43.0f / 65.0f * 255);
-		dither[i++] = (27.0f / 65.0f * 255);
-		dither[i++] = (39.0f / 65.0f * 255);
-		dither[i++] = (23.0f / 65.0f * 255);
-		dither[i++] = (42.0f / 65.0f * 255);
-		dither[i++] = (26.0f / 65.0f * 255);
-		dither[i++] = (38.0f / 65.0f * 255);
-		dither[i++] = (22.0f / 65.0f * 255);
+        int i           = 0;
+        int dither_size = 8;
+
+        dither.resize(dither_size * dither_size);
+
+        dither[i++] = (1.0f / 65.0f * 255);
+        dither[i++] = (49.0f / 65.0f * 255);
+        dither[i++] = (13.0f / 65.0f * 255);
+        dither[i++] = (61.0f / 65.0f * 255);
+        dither[i++] = (4.0f / 65.0f * 255);
+        dither[i++] = (52.0f / 65.0f * 255);
+        dither[i++] = (16.0f / 65.0f * 255);
+        dither[i++] = (64.0f / 65.0f * 255);
+
+        dither[i++] = (33.0f / 65.0f * 255);
+        dither[i++] = (17.0f / 65.0f * 255);
+        dither[i++] = (45.0f / 65.0f * 255);
+        dither[i++] = (29.0f / 65.0f * 255);
+        dither[i++] = (36.0f / 65.0f * 255);
+        dither[i++] = (20.0f / 65.0f * 255);
+        dither[i++] = (48.0f / 65.0f * 255);
+        dither[i++] = (32.0f / 65.0f * 255);
+
+        dither[i++] = (9.0f / 65.0f * 255);
+        dither[i++] = (57.0f / 65.0f * 255);
+        dither[i++] = (5.0f / 65.0f * 255);
+        dither[i++] = (53.0f / 65.0f * 255);
+        dither[i++] = (12.0f / 65.0f * 255);
+        dither[i++] = (60.0f / 65.0f * 255);
+        dither[i++] = (8.0f / 65.0f * 255);
+        dither[i++] = (56.0f / 65.0f * 255);
+
+        dither[i++] = (41.0f / 65.0f * 255);
+        dither[i++] = (25.0f / 65.0f * 255);
+        dither[i++] = (37.0f / 65.0f * 255);
+        dither[i++] = (21.0f / 65.0f * 255);
+        dither[i++] = (44.0f / 65.0f * 255);
+        dither[i++] = (28.0f / 65.0f * 255);
+        dither[i++] = (40.0f / 65.0f * 255);
+        dither[i++] = (24.0f / 65.0f * 255);
+
+        dither[i++] = (3.0f / 65.0f * 255);
+        dither[i++] = (51.0f / 65.0f * 255);
+        dither[i++] = (15.0f / 65.0f * 255);
+        dither[i++] = (63.0f / 65.0f * 255);
+        dither[i++] = (2.0f / 65.0f * 255);
+        dither[i++] = (50.0f / 65.0f * 255);
+        dither[i++] = (14.0f / 65.0f * 255);
+        dither[i++] = (62.0f / 65.0f * 255);
+
+        dither[i++] = (35.0f / 65.0f * 255);
+        dither[i++] = (19.0f / 65.0f * 255);
+        dither[i++] = (47.0f / 65.0f * 255);
+        dither[i++] = (31.0f / 65.0f * 255);
+        dither[i++] = (34.0f / 65.0f * 255);
+        dither[i++] = (18.0f / 65.0f * 255);
+        dither[i++] = (46.0f / 65.0f * 255);
+        dither[i++] = (30.0f / 65.0f * 255);
+
+        dither[i++] = (11.0f / 65.0f * 255);
+        dither[i++] = (59.0f / 65.0f * 255);
+        dither[i++] = (7.0f / 65.0f * 255);
+        dither[i++] = (55.0f / 65.0f * 255);
+        dither[i++] = (10.0f / 65.0f * 255);
+        dither[i++] = (58.0f / 65.0f * 255);
+        dither[i++] = (6.0f / 65.0f * 255);
+        dither[i++] = (54.0f / 65.0f * 255);
+
+        dither[i++] = (43.0f / 65.0f * 255);
+        dither[i++] = (27.0f / 65.0f * 255);
+        dither[i++] = (39.0f / 65.0f * 255);
+        dither[i++] = (23.0f / 65.0f * 255);
+        dither[i++] = (42.0f / 65.0f * 255);
+        dither[i++] = (26.0f / 65.0f * 255);
+        dither[i++] = (38.0f / 65.0f * 255);
+        dither[i++] = (22.0f / 65.0f * 255);
 #else
-		int i           = 0;
-		int dither_size = 4;
-		
-		dither.resize(dither_size * dither_size);
-		
-		dither[i++] = (0.0f / 16.0f * 255);
-		dither[i++] = (8.0f / 16.0f * 255);
-		dither[i++] = (2.0f / 16.0f * 255);
-		dither[i++] = (10.0f / 16.0f * 255);
-		
-		dither[i++] = (12.0f / 16.0f * 255);
-		dither[i++] = (4.0f / 16.0f * 255);
-		dither[i++] = (14.0f / 16.0f * 255);
-		dither[i++] = (6.0f / 16.0f * 255);
-		
-		dither[i++] = (3.0f / 16.0f * 255);
-		dither[i++] = (11.0f / 16.0f * 255);
-		dither[i++] = (1.0f / 16.0f * 255);
-		dither[i++] = (9.0f / 16.0f * 255);
-		
-		dither[i++] = (15.0f / 16.0f * 255);
-		dither[i++] = (7.0f / 16.0f * 255);
-		dither[i++] = (13.0f / 16.0f * 255);
-		dither[i++] = (5.0f / 16.0f * 255);
+        int i           = 0;
+        int dither_size = 4;
+
+        dither.resize(dither_size * dither_size);
+
+        dither[i++] = (0.0f / 16.0f * 255);
+        dither[i++] = (8.0f / 16.0f * 255);
+        dither[i++] = (2.0f / 16.0f * 255);
+        dither[i++] = (10.0f / 16.0f * 255);
+
+        dither[i++] = (12.0f / 16.0f * 255);
+        dither[i++] = (4.0f / 16.0f * 255);
+        dither[i++] = (14.0f / 16.0f * 255);
+        dither[i++] = (6.0f / 16.0f * 255);
+
+        dither[i++] = (3.0f / 16.0f * 255);
+        dither[i++] = (11.0f / 16.0f * 255);
+        dither[i++] = (1.0f / 16.0f * 255);
+        dither[i++] = (9.0f / 16.0f * 255);
+
+        dither[i++] = (15.0f / 16.0f * 255);
+        dither[i++] = (7.0f / 16.0f * 255);
+        dither[i++] = (13.0f / 16.0f * 255);
+        dither[i++] = (5.0f / 16.0f * 255);
 #endif
 
-		m_dither_texture = std::make_unique<dw::Texture2D>(dither_size, dither_size, 1, 1, 1, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-		m_dither_texture->set_min_filter(GL_NEAREST);
-		m_dither_texture->set_mag_filter(GL_NEAREST);
-		m_dither_texture->set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
-		m_dither_texture->set_data(0, 0, dither.data());
-	}
+        m_dither_texture = std::make_unique<dw::Texture2D>(dither_size, dither_size, 1, 1, 1, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
+        m_dither_texture->set_min_filter(GL_NEAREST);
+        m_dither_texture->set_mag_filter(GL_NEAREST);
+        m_dither_texture->set_wrapping(GL_REPEAT, GL_REPEAT, GL_REPEAT);
+        m_dither_texture->set_data(0, 0, dither.data());
+    }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -607,17 +607,17 @@ private:
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
         glDisable(GL_BLEND);
-     
-		if (m_screenspace_interpolation)
-		{
-			m_scaled_indirect_fbo->bind();
-			glViewport(0, 0, m_width * SCALED_INDIRECT, m_height * SCALED_INDIRECT);
-		}
-		else
-		{
-			m_indirect_fbo->bind();
-			glViewport(0, 0, m_width, m_height);
-		}
+
+        if (m_screenspace_interpolation)
+        {
+            m_scaled_indirect_fbo->bind();
+            glViewport(0, 0, m_width * SCALED_INDIRECT, m_height * SCALED_INDIRECT);
+        }
+        else
+        {
+            m_indirect_fbo->bind();
+            glViewport(0, 0, m_width, m_height);
+        }
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -643,10 +643,10 @@ private:
         if (m_indirect_program->set_uniform("s_Samples", 5))
             m_samples_texture->bind(5);
 
-		if (m_indirect_program->set_uniform("s_Dither", 6))
+        if (m_indirect_program->set_uniform("s_Dither", 6))
             m_dither_texture->bind(6);
 
-		m_indirect_program->set_uniform("u_Dither", m_enable_dither ? 1 : 0);
+        m_indirect_program->set_uniform("u_Dither", m_enable_dither ? 1 : 0);
         m_indirect_program->set_uniform("u_NumSamples", m_num_samples);
         m_indirect_program->set_uniform("u_SampleRadius", m_sample_radius * (1.0f / float(RSM_SIZE)));
         m_indirect_program->set_uniform("u_IndirectLightAmount", m_indirect_light_amount);
@@ -665,37 +665,37 @@ private:
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
-	void copy_indirect()
-	{
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		
-		glViewport(0, 0, m_width, m_height);
+    void copy_indirect()
+    {
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
 
-		if (m_indirect_only)
-		{
-		    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		    glClear(GL_COLOR_BUFFER_BIT);
-		}
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		 // Bind shader program.
-		m_copy_program->use();
-		
-		if (m_copy_program->set_uniform("s_Color", 0))
-		{
-			if (m_screenspace_interpolation)
-				m_scaled_indirect_rt->bind(0);
-			else
-				m_indirect_rt->bind(0);
-		}
+        glViewport(0, 0, m_width, m_height);
 
-		// Render fullscreen triangle
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-	}
+        if (m_indirect_only)
+        {
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
+        // Bind shader program.
+        m_copy_program->use();
+
+        if (m_copy_program->set_uniform("s_Color", 0))
+        {
+            if (m_screenspace_interpolation)
+                m_scaled_indirect_rt->bind(0);
+            else
+                m_indirect_rt->bind(0);
+        }
+
+        // Render fullscreen triangle
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
 
     // -----------------------------------------------------------------------------------------------------------------------------------
 
@@ -714,7 +714,7 @@ private:
             ImGui::InputFloat3("Light Target", &m_light_target.x);
         }
 
-		ImGui::Checkbox("Dither", &m_enable_dither);
+        ImGui::Checkbox("Dither", &m_enable_dither);
         ImGui::Checkbox("Screen Space Interpolation", &m_screenspace_interpolation);
         ImGui::InputInt("Num RSM Samples", &m_num_samples);
         ImGui::InputFloat("Sample Radius", &m_sample_radius);
@@ -960,12 +960,12 @@ private:
     bool      m_flash_light = false;
 
     // RSM
-    bool                           m_rsm_enabled           = true;
-    bool                           m_indirect_only         = false;
+    bool                           m_rsm_enabled               = true;
+    bool                           m_indirect_only             = false;
     bool                           m_screenspace_interpolation = true;
-    int                            m_num_samples           = SAMPLES_TEXTURE_SIZE;
-    float                          m_indirect_light_amount = 3.0f;
-    float                          m_sample_radius         = 500.0f;
+    int                            m_num_samples               = SAMPLES_TEXTURE_SIZE;
+    float                          m_indirect_light_amount     = 3.0f;
+    float                          m_sample_radius             = 500.0f;
     std::unique_ptr<dw::Texture2D> m_samples_texture;
 
     // Uniforms.
