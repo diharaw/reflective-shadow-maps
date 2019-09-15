@@ -1,6 +1,6 @@
 # ReflectiveShadowMaps
 
-An OpenGL sample implementation of Reflective Shadow Maps for spot lights.
+An OpenGL sample implementation of Reflective Shadow Maps for spot lights. Also features the sceenspace interpolation improvement mentioned in the original paper.
 
 ![ReflectiveShadowMaps](data/combined.jpg)
 ![ReflectiveShadowMaps](data/indirect_only.jpg)
